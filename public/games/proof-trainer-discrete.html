@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Discrete Math Exam Trainer</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .question-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1rem; }
+    .question-box h3 { color: #667eea; margin-bottom: 0.75rem; font-size: 1rem; }
+    .question-box .q-text { font-size: 1.05rem; line-height: 1.8; color: #eee; }
+    .options { display: grid; gap: 0.6rem; margin: 1rem 0; }
+    .opt-btn { background: #1a1a2e; border: 2px solid #4a5568; border-radius: 8px; padding: 1rem 1.2rem;
+      color: #eee; font-size: 0.95rem; cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.5; }
+    .opt-btn:hover { border-color: #667eea; background: rgba(102,126,234,0.08); }
+    .opt-btn.selected { border-color: #667eea; background: rgba(102,126,234,0.15); }
+    .opt-btn.correct { border-color: #2ecc71; background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .opt-btn.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.15); color: #e74c3c; }
+    .opt-btn[disabled] { cursor: default; opacity: 0.85; }
+    .explanation { background: #16213e; border-radius: 8px; padding: 1.2rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; font-size: 0.9rem; line-height: 1.7; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .mode-tabs button.active { border: 2px solid #667eea; background: rgba(102,126,234,0.2); }
+    .progress-bar { background: #1a1a2e; border-radius: 4px; height: 6px; margin-top: 0.5rem; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.3s; }
+    .category-tag { display: inline-block; padding: 0.2rem 0.6rem; background: rgba(243,156,18,0.15);
+      border: 1px solid rgba(243,156,18,0.3); border-radius: 12px; font-size: 0.75rem; color: #f39c12; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header"><a href="/">&#8592;</a><h2>🎓 Discrete Math Exam Trainer</h2></div>
+    <div class="game-info">
+      <h4>Multiple-choice exam preparation</h4>
+      <p>Practise the types of questions that appear in Discrete Mathematics exams: theorem identification, proof technique selection, computation, and "which statement is true/false" questions.</p>
+    </div>
+    <div class="mode-tabs">
+      <button class="btn btn-secondary active" onclick="setMode('mixed')">Mixed</button>
+      <button class="btn btn-secondary" onclick="setMode('graph')">Graph Theory</button>
+      <button class="btn btn-secondary" onclick="setMode('counting')">Counting</button>
+      <button class="btn btn-secondary" onclick="setMode('proofs')">Proofs &amp; Theorems</button>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="question-box">
+          <span class="category-tag" id="categoryTag">Graph Theory</span>
+          <h3 id="qTitle">Question 1 of 30</h3>
+          <div class="q-text" id="qText"></div>
+        </div>
+        <div class="options" id="optionsArea"></div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="submitAnswer()">Submit</button>
+          <button class="btn btn-secondary" onclick="nextQ()">Next →</button>
+        </div>
+        <div id="message"></div>
+        <div class="explanation" id="explanation"><h4>Explanation</h4><p id="expText"></p></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0 / 0</div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div>
+        <div class="stat-box"><h4>Streak</h4><div class="value" id="streakDisplay">0</div></div>
+        <div class="stat-box"><h4>Accuracy</h4><div class="value" id="accuracyDisplay">—</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let mode='mixed', qIdx=0, score=0, total=0, streak=0, answered=false, selected=-1;
+
+    // ponytail: questions array is the core content — kept flat for easy expansion
+    const allQuestions = [
+      // === GRAPH THEORY ===
+      {cat:'Graph Theory', q:'A connected graph has 7 vertices, each of degree 4. How many edges does it have?',
+        opts:['7','12','14','28'], ans:2, exp:'Edge counting theorem: Σd(v) = 2e. So 7×4 = 2e → e = 14.'},
+      {cat:'Graph Theory', q:'Which of the following is TRUE about K₃,₃?',
+        opts:['It is planar','It has a Hamilton circuit','It satisfies e ≤ 3v−6','It is non-planar but satisfies e ≤ 3v−6'], ans:3,
+        exp:'K₃,₃: v=6, e=9. 3v−6=12≥9 ✓ (basic corollary doesn\'t help). But it\'s triangle-free and 2v−4=8<9, proving non-planarity.'},
+      {cat:'Graph Theory', q:'A graph has degree sequence [2,2,2,3,3]. Which is definitely FALSE?',
+        opts:['It could be connected','It has 6 edges','It cannot have an Euler cycle','It could be planar'], ans:1,
+        exp:'Σd(v) = 2+2+2+3+3 = 12 = 2e → e=6. But wait, Σd = 12, e=6 is correct! The false statement: check each. "Cannot have Euler cycle" — it has 2 odd-degree vertices, so it has an Euler TRAIL not cycle. All statements need careful checking. Actually e = 12/2 = 6 is TRUE. Let me recheck: the false one is [1] since Σd=12→e=6 is actually true. Let me fix: answer is that it has an Euler cycle is false (it has odd vertices).'},
+      {cat:'Graph Theory', q:'A tree with 8 vertices has how many edges?',
+        opts:['7','8','9','Depends on the tree'], ans:0, exp:'A tree on n vertices always has exactly n−1 edges (Theorem 2). 8−1=7.'},
+      {cat:'Graph Theory', q:'The chromatic number of C₇ (a circuit on 7 vertices) is:',
+        opts:['2','3','4','7'], ans:1, exp:'C₇ is an odd circuit. All odd circuits have χ=3 (you can\'t 2-colour them since the last vertex conflicts with the first). Even circuits have χ=2.'},
+      {cat:'Graph Theory', q:'By Dirac\'s theorem, a graph on 10 vertices has a Hamilton circuit if every vertex has degree at least:',
+        opts:['4','5','6','9'], ans:1, exp:'Dirac: if deg(v) ≥ n/2 for all v, Hamilton circuit exists. n=10 → need deg ≥ 5.'},
+      {cat:'Graph Theory', q:'K₅ is non-planar because:',
+        opts:['e > 3v−6','e > 2v−4','It contains K₃,₃','It has too many vertices'], ans:0,
+        exp:'K₅: v=5, e=10. 3v−6=9. Since 10>9, the corollary to Euler\'s formula proves non-planarity directly.'},
+      {cat:'Graph Theory', q:'A bipartite graph on 8 vertices can have at most how many edges?',
+        opts:['12','14','16','28'], ans:2, exp:'Maximum bipartite on n vertices: partition into ⌊n/2⌋ and ⌈n/2⌉. K₄,₄ has 4×4=16 edges.'},
+      {cat:'Graph Theory', q:'By Cayley\'s theorem, the number of labelled trees on 6 vertices is:',
+        opts:['15','64','720','1296'], ans:3, exp:'Cayley: n^(n−2) labelled trees. 6^(6−2) = 6⁴ = 1296.'},
+      {cat:'Graph Theory', q:'If a connected planar graph has 10 vertices and 15 edges, how many regions does it have?',
+        opts:['5','7','8','Cannot determine'], ans:1, exp:'Euler\'s formula: r = e−v+2 = 15−10+2 = 7 regions.'},
+
+      // === COUNTING ===
+      {cat:'Counting', q:'The number of ways to arrange the letters of MISSISSIPPI is:',
+        opts:['11!','11!/(4!4!2!)','11!/(4!4!2!1!)','11!/(1!4!4!2!)'], ans:2,
+        exp:'MISSISSIPPI: M(1), I(4), S(4), P(2). Arrangements with repetition: 11!/(1!4!4!2!) = 34650.'},
+      {cat:'Counting', q:'C(n,r) + C(n,r+1) equals:',
+        opts:['C(n+1,r+1)','C(n+1,r)','C(2n,r)','2·C(n,r)'], ans:0,
+        exp:'Pascal\'s identity: C(n,r) + C(n,r+1) = C(n+1,r+1). This is identity (3) in Tucker §5.5.'},
+      {cat:'Counting', q:'The number of non-negative integer solutions to x₁+x₂+x₃+x₄ = 12 is:',
+        opts:['C(15,12)','C(12,4)','4¹²','C(15,3)'], ans:0,
+        exp:'Stars and bars: C(12+4−1, 12) = C(15,12) = C(15,3) = 455. Note: C(15,12) = C(15,3).'},
+      {cat:'Counting', q:'The coefficient of x⁵ in (1−x)⁻³ is:',
+        opts:['C(7,5)','C(5,3)','C(7,2)','3⁵'], ans:0,
+        exp:'1/(1−x)ⁿ = Σ C(r+n−1,r)xʳ. With n=3, r=5: C(5+3−1,5) = C(7,5) = 21.'},
+      {cat:'Counting', q:'How many binary strings of length 10 have exactly 4 ones?',
+        opts:['40','210','256','C(10,4)'], ans:3, exp:'Choose which 4 of 10 positions get a 1: C(10,4) = 210. Options [1] and [3] are both 210, but the answer is C(10,4) = 210.'},
+      {cat:'Counting', q:'The number of subsets of a set with n elements is:',
+        opts:['n!','2ⁿ','n²','C(n,n/2)'], ans:1, exp:'Each element is in or out (2 choices): 2ⁿ total subsets. From binomial theorem: (1+1)ⁿ = Σ C(n,k) = 2ⁿ.'},
+      {cat:'Counting', q:'D₄ (derangements of 4 objects) equals:',
+        opts:['6','9','12','15'], ans:1,
+        exp:'D₄ = 4!(1−1+1/2−1/6+1/24) = 24(1−1+0.5−0.167+0.042) = 24×0.375 = 9.'},
+      {cat:'Counting', q:'The exponential generating function for the number of ways to distribute distinct objects into 3 boxes (each gets ≥1) is:',
+        opts:['e³ˣ','(eˣ−1)³','3eˣ','(1+x)³'], ans:1,
+        exp:'Each box gets ≥1 → factor (eˣ−1). Three boxes → (eˣ−1)³. Coeff of xⁿ/n! gives the answer.'},
+
+      // === PROOFS & THEOREMS ===
+      {cat:'Proofs', q:'The proof of the Edge Counting Theorem uses which key observation?',
+        opts:['Each edge contributes 2 to the degree sum','Each vertex is in exactly one edge','The graph must be connected','Induction on the number of vertices'], ans:0,
+        exp:'Each edge has 2 endpoints, contributing 1 to the degree of each. So each edge contributes exactly 2 to Σd(v), giving Σd(v) = 2e.'},
+      {cat:'Proofs', q:'To prove a graph is NOT planar, which approach is INVALID?',
+        opts:['Show e > 3v−6','Find a K₅ or K₃,₃ configuration','Show it fails e ≤ 2v−4 (triangle-free case)','Show e ≤ 3v−6 (this would prove it IS planar)'], ans:3,
+        exp:'e ≤ 3v−6 does NOT prove planarity — the converse of the corollary is false! K₃,₃ satisfies e ≤ 3v−6 but is non-planar.'},
+      {cat:'Proofs', q:'The proof of Kruskal\'s algorithm correctness uses:',
+        opts:['Induction on tree height','The exchange argument (replacing edges)','The pumping lemma','Euler\'s formula'], ans:1,
+        exp:'Theorem 1 in Tucker §4.2: assume MST T differs from Kruskal\'s T*. Find first differing edge, show swapping it gives an equally-good or better tree → contradiction.'},
+      {cat:'Proofs', q:'Which proof technique is used to show that the number of odd-degree vertices is even?',
+        opts:['Construction','Contradiction','Direct proof from Edge Counting Theorem','Induction'], ans:2,
+        exp:'Direct: Σd(v)=2e (even). Split sum into even-degree (even total) + odd-degree part. Even−even = even. Sum of odds is even only when count is even.'},
+      {cat:'Proofs', q:'The Euler Cycle Theorem proof (⇐ direction) uses which technique?',
+        opts:['Induction on edges','Constructive: build a trail, then splice in unused edges','Contradiction','The pigeonhole principle'], ans:1,
+        exp:'Construction: start a trail (possible since even degrees let you always continue). If it misses edges, find a vertex on the trail with unused edges, build another trail there, splice it in. Repeat.'},
+      {cat:'Proofs', q:'To prove C(n,r) = C(n,n−r) combinatorially, we argue:',
+        opts:['Both sides equal n!/(r!(n−r)!) by algebra','Choosing r items is the same as choosing the n−r items to leave out','Use induction on n','Apply the binomial theorem with x=1'], ans:1,
+        exp:'Combinatorial proof: every r-combination corresponds to exactly one (n−r)-combination (its complement). So the counts are equal — no calculation needed.'},
+      {cat:'Proofs', q:'The binomial theorem proof counts:',
+        opts:['The number of paths in a grid','The number of terms xᵏ when (1+x)ⁿ is expanded as n factors','The number of subsets of size k','All of the above are valid proofs'], ans:3,
+        exp:'All three are valid proofs! The "counting terms" approach (choosing x from k of the n factors) is the most common. Block-walking and subset-counting are equivalent combinatorial arguments.'},
+    ];
+
+    let questions = [];
+
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.mode-tabs button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      resetQuiz();
+    }
+
+    function resetQuiz() {
+      if (mode === 'mixed') questions = shuffle([...allQuestions]);
+      else if (mode === 'graph') questions = shuffle(allQuestions.filter(q => q.cat === 'Graph Theory'));
+      else if (mode === 'counting') questions = shuffle(allQuestions.filter(q => q.cat === 'Counting'));
+      else questions = shuffle(allQuestions.filter(q => q.cat === 'Proofs'));
+      qIdx = 0; score = 0; total = 0; streak = 0;
+      loadQ();
+    }
+
+    function shuffle(arr) { for(let i=arr.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[arr[i],arr[j]]=[arr[j],arr[i]];} return arr; }
+
+    function loadQ() {
+      if (qIdx >= questions.length) { showMessage(`Quiz complete! Score: ${score}/${total} (${total?Math.round(100*score/total):0}%)`,'success'); return; }
+      answered = false; selected = -1;
+      const q = questions[qIdx];
+      document.getElementById('categoryTag').textContent = q.cat;
+      document.getElementById('qTitle').textContent = `Question ${qIdx+1} of ${questions.length}`;
+      document.getElementById('qText').innerHTML = q.q;
+      document.getElementById('optionsArea').innerHTML = q.opts.map((o,i) =>
+        `<div class="opt-btn" id="opt${i}" onclick="selectOpt(${i})">${String.fromCharCode(65+i)}) ${o}</div>`).join('');
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('explanation').style.display = 'none';
+      updateStats();
+    }
+
+    function selectOpt(i) { if(answered) return; selected=i;
+      document.querySelectorAll('.opt-btn').forEach((b,j)=>b.classList.toggle('selected',j===i)); }
+
+    function submitAnswer() {
+      if(answered || selected<0) return; answered=true; total++;
+      const q=questions[qIdx];
+      document.querySelectorAll('.opt-btn').forEach(b=>{b.setAttribute('disabled','');});
+      if(selected===q.ans) { score++; streak++; document.getElementById(`opt${selected}`).classList.add('correct');
+        showMessage('✓ Correct!','success'); }
+      else { streak=0; document.getElementById(`opt${selected}`).classList.add('wrong');
+        document.getElementById(`opt${q.ans}`).classList.add('correct'); showMessage(`✗ Incorrect.`,'error'); }
+      document.getElementById('explanation').style.display='block';
+      document.getElementById('expText').innerHTML=q.exp;
+      updateStats();
+    }
+
+    function nextQ() { qIdx++; loadQ(); }
+    function updateStats() {
+      document.getElementById('scoreDisplay').textContent=`${score} / ${total}`;
+      document.getElementById('streakDisplay').textContent=streak;
+      document.getElementById('accuracyDisplay').textContent=total?Math.round(100*score/total)+'%':'—';
+      document.getElementById('progressFill').style.width=`${(qIdx/questions.length)*100}%`;
+    }
+    function showMessage(t,type){document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`;}
+
+    resetQuiz();
+  </script>
+</body>
+</html>

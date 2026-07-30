@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Theory of Computation Exam Trainer</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .question-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1rem; }
+    .question-box h3 { color: #667eea; margin-bottom: 0.75rem; font-size: 1rem; }
+    .question-box .q-text { font-size: 1.05rem; line-height: 1.8; color: #eee; }
+    .options { display: grid; gap: 0.6rem; margin: 1rem 0; }
+    .opt-btn { background: #1a1a2e; border: 2px solid #4a5568; border-radius: 8px; padding: 1rem 1.2rem;
+      color: #eee; font-size: 0.95rem; cursor: pointer; text-align: left; transition: all 0.2s; line-height: 1.5; }
+    .opt-btn:hover { border-color: #667eea; background: rgba(102,126,234,0.08); }
+    .opt-btn.selected { border-color: #667eea; background: rgba(102,126,234,0.15); }
+    .opt-btn.correct { border-color: #2ecc71; background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .opt-btn.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.15); color: #e74c3c; }
+    .explanation { background: #16213e; border-radius: 8px; padding: 1.2rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; font-size: 0.9rem; line-height: 1.7; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .mode-tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .mode-tabs button.active { border: 2px solid #667eea; background: rgba(102,126,234,0.2); }
+    .progress-bar { background: #1a1a2e; border-radius: 4px; height: 6px; margin-top: 0.5rem; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2); border-radius: 4px; transition: width 0.3s; }
+    .category-tag { display: inline-block; padding: 0.2rem 0.6rem; background: rgba(243,156,18,0.15);
+      border: 1px solid rgba(243,156,18,0.3); border-radius: 12px; font-size: 0.75rem; color: #f39c12; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header"><a href="/">&#8592;</a><h2>🎓 Theory of Computation Exam Trainer</h2></div>
+    <div class="game-info">
+      <h4>Exam preparation</h4>
+      <p>Questions covering context-free grammars, PDAs, pumping lemmas, Turing machines, decidability, and the Chomsky hierarchy — matching the style of Theory of Computation exams.</p>
+    </div>
+    <div class="mode-tabs">
+      <button class="btn btn-secondary active" onclick="setMode('mixed')">Mixed</button>
+      <button class="btn btn-secondary" onclick="setMode('cfg')">Grammars &amp; CNF</button>
+      <button class="btn btn-secondary" onclick="setMode('pda')">PDAs &amp; Languages</button>
+      <button class="btn btn-secondary" onclick="setMode('tm')">TMs &amp; Decidability</button>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="question-box">
+          <span class="category-tag" id="categoryTag">CFG</span>
+          <h3 id="qTitle">Question 1</h3>
+          <div class="q-text" id="qText"></div>
+        </div>
+        <div class="options" id="optionsArea"></div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="submitAnswer()">Submit</button>
+          <button class="btn btn-secondary" onclick="nextQ()">Next →</button>
+        </div>
+        <div id="message"></div>
+        <div class="explanation" id="explanation"><h4>Explanation</h4><p id="expText"></p></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0 / 0</div>
+          <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div></div>
+        <div class="stat-box"><h4>Streak</h4><div class="value" id="streakDisplay">0</div></div>
+        <div class="stat-box"><h4>Accuracy</h4><div class="value" id="accuracyDisplay">—</div></div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let mode='mixed', qIdx=0, score=0, total=0, streak=0, answered=false, selected=-1;
+
+    const allQuestions = [
+      // === CFG & CNF ===
+      {cat:'CFG', q:'A CFG is in Chomsky Normal Form if every production has the form:',
+        opts:['A→BC or A→a','A→aB or A→a','A→BCD or A→a','A→BC or A→ab'], ans:0,
+        exp:'CNF: nonterminal → exactly two nonterminals (A→BC), or nonterminal → exactly one terminal (A→a). No other forms allowed.'},
+      {cat:'CFG', q:'In converting a CFG to CNF, which step must be done FIRST?',
+        opts:['Eliminate unit productions','Rewrite in binary form','Eliminate Λ-productions','Add new nonterminals for terminals'], ans:2,
+        exp:'The order is fixed: (1) Eliminate Λ-productions, (2) Eliminate unit productions, (3) Rewrite. Doing them out of order can reintroduce eliminated forms.'},
+      {cat:'CFG', q:'A grammar is ambiguous if:',
+        opts:['It generates an infinite language','Some word has two different derivation trees','It contains Λ-productions','It is not in CNF'], ans:1,
+        exp:'Ambiguity means some word has more than one parse tree (different derivations). It\'s the GRAMMAR that\'s ambiguous, not the language.'},
+      {cat:'CFG', q:'The grammar S→aSb|Λ generates:',
+        opts:['{aⁿbⁿ | n≥0}','{aⁿbⁿ | n≥1}','All palindromes','All words with equal a\'s and b\'s'], ans:0,
+        exp:'S→aSb wraps a...b pairs recursively. S→Λ terminates. Generates Λ, ab, aabb, aaabbb, ... = {aⁿbⁿ | n≥0}.'},
+      {cat:'CFG', q:'If X is nullable and appears in production S→aXbX, how many new productions must be added when eliminating Λ-productions?',
+        opts:['1','2','3','4'], ans:2,
+        exp:'X appears twice. Combinations: remove first X (S→abX), remove second X (S→aXb), remove both (S→ab). That\'s 3 new productions.'},
+      {cat:'CFG', q:'Regular grammars are a subset of CFGs where every production has:',
+        opts:['At most 2 symbols on the right','A word or a semiword (terminals followed by one nonterminal) on the right','Exactly one terminal on the right','Two nonterminals on the right'], ans:1,
+        exp:'Regular grammar: RHS is either a word (string of terminals) or a semiword (terminals followed by exactly one nonterminal). These generate exactly the regular languages.'},
+
+      // === PDA & LANGUAGES ===
+      {cat:'PDA', q:'PDAs accept exactly which class of languages?',
+        opts:['Regular languages','Context-free languages','Recursive languages','Recursively enumerable languages'], ans:1,
+        exp:'PDAs (nondeterministic) accept precisely the context-free languages. This is proven by showing CFG→PDA and PDA→CFG conversions exist.'},
+      {cat:'PDA', q:'Unlike FAs, nondeterministic PDAs are:',
+        opts:['Equal in power to deterministic PDAs','Less powerful than deterministic PDAs','More powerful than deterministic PDAs','Equivalent to Turing machines'], ans:2,
+        exp:'PDA ≠ DPDA. Nondeterministic PDAs accept more languages (e.g., PALINDROME is accepted by a PDA but not any DPDA). This is unique — for FAs and TMs, nondeterminism doesn\'t add power.'},
+      {cat:'PDA', q:'A PDA can accept {aⁿb²ⁿ | n≥0} because:',
+        opts:['It can count to any fixed number','Its stack can store 2 symbols per input, then match later','It uses nondeterminism','It has two stacks'], ans:1,
+        exp:'Push two a\'s per input a (or push a and later pop one per two b\'s). The stack enables comparing two "clumps" of letters. A PDA has ONE stack — 2PDA would be a TM.'},
+      {cat:'PDA', q:'There is NO PDA that accepts {aⁿbⁿaⁿ | n≥1} because:',
+        opts:['The language is not regular','A single stack cannot compare three clumps','The pumping lemma says so','PDAs can\'t read backwards'], ans:1,
+        exp:'A PDA compares by push/pop — this works for 2 clumps. For 3 clumps (aⁿ vs bⁿ vs aⁿ), you\'d need to "remember" after emptying the stack. One stack can\'t do two independent comparisons.'},
+      {cat:'PDA', q:'Context-free languages are closed under:',
+        opts:['Union, intersection, complement','Union, product, Kleene closure','Union, intersection, Kleene closure','All five operations'], ans:1,
+        exp:'CFLs are closed under union, product (concatenation), and Kleene closure. NOT closed under intersection or complement (this is proven with counterexamples in Ch 17).'},
+      {cat:'PDA', q:'The CYK algorithm determines:',
+        opts:['Whether a CFG generates any words','Whether a specific word is in the language of a CFG','Whether a CFG is ambiguous','Whether two CFGs generate the same language'], ans:1,
+        exp:'CYK (Theorem 45): given a CFG in CNF and a word w, determines whether w ∈ L(G). It\'s a dynamic programming algorithm that fills a table bottom-up.'},
+
+      // === TM & DECIDABILITY ===
+      {cat:'TM', q:'A 2PDA (deterministic PDA with 2 stacks) is equivalent in power to:',
+        opts:['A PDA','A DPDA','A Turing machine','A 3PDA but not a TM'], ans:2,
+        exp:'Theorem 50 (Minsky): 2PDAs = TMs as language acceptors. The second stack gives enough memory to simulate a TM tape. Adding more stacks (nPDA) doesn\'t help further.'},
+      {cat:'TM', q:'A language is recursive if:',
+        opts:['Some TM accepts it (possibly looping on non-members)','Some TM accepts it and halts on ALL inputs','It is generated by a CFG','It is accepted by a PDA'], ans:1,
+        exp:'Recursive: exists a TM that accepts members AND rejects non-members (never loops). Recursively enumerable only requires halting on members; may loop on non-members.'},
+      {cat:'TM', q:'The Halting Problem states that:',
+        opts:['All TMs eventually halt','No TM can solve every problem','There is no algorithm to determine if an arbitrary TM halts on arbitrary input','TMs are more powerful than PDAs'], ans:2,
+        exp:'Halting Problem (Theorem 69): given TM T and input w, the question "does T halt on w?" is UNDECIDABLE. No single algorithm can answer this for all T and w.'},
+      {cat:'TM', q:'Every recursive language is also:',
+        opts:['Regular','Context-free','Recursively enumerable','Finite'], ans:2,
+        exp:'Recursive ⊂ Recursively Enumerable. If a TM always halts (recursive), it certainly accepts members (r.e. requirement). The converse is false: some r.e. languages are not recursive.'},
+      {cat:'TM', q:'Nondeterministic Turing machines (NTMs) are:',
+        opts:['More powerful than TMs','Less powerful than TMs','Equal in power to TMs','Equal to PDAs'], ans:2,
+        exp:'Theorem 59: NTMs = TMs in power (unlike PDAs where NPDA > DPDA). Any NTM can be simulated by a deterministic TM (using systematic exploration of all paths).'},
+      {cat:'TM', q:'Which question about CFGs is UNDECIDABLE?',
+        opts:['Does this CFG generate any words?','Does this CFG generate a specific word w?','Do two given CFGs generate the same language?','Is this CFG\'s language finite or infinite?'], ans:2,
+        exp:'Equivalence of CFGs is undecidable. But: "generates any words?" (Theorem 42), "generates w?" (CYK, Theorem 45), and "finite/infinite?" (Theorem 44) are all decidable.'},
+      {cat:'TM', q:'Phase-structure (Type 0) grammars generate exactly:',
+        opts:['The regular languages','The context-free languages','The recursive languages','The recursively enumerable languages'], ans:3,
+        exp:'The Chomsky hierarchy: Type 3 (regular) → Type 2 (CF) → Type 1 (context-sensitive) → Type 0 (phase-structure = r.e. languages). Type 0 grammars = TM-acceptable languages.'},
+      {cat:'TM', q:'The INSERT subroutine on a TM:',
+        opts:['Adds a character by shifting all characters to the right','Overwrites the current cell','Moves the tape head left','Pops from the stack'], ans:0,
+        exp:'INSERT shifts everything to the right of the current position one cell to the right, then writes the new character. The tape head ends up on the inserted character.'},
+    ];
+
+    let questions = [];
+
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.mode-tabs button').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+      resetQuiz();
+    }
+
+    function resetQuiz() {
+      if (mode==='mixed') questions=shuffle([...allQuestions]);
+      else if (mode==='cfg') questions=shuffle(allQuestions.filter(q=>q.cat==='CFG'));
+      else if (mode==='pda') questions=shuffle(allQuestions.filter(q=>q.cat==='PDA'));
+      else questions=shuffle(allQuestions.filter(q=>q.cat==='TM'));
+      qIdx=0; score=0; total=0; streak=0; loadQ();
+    }
+
+    function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+    function loadQ() {
+      if(qIdx>=questions.length){showMessage(`Quiz complete! ${score}/${total} (${total?Math.round(100*score/total):0}%)`,'success');return;}
+      answered=false; selected=-1;
+      const q=questions[qIdx];
+      document.getElementById('categoryTag').textContent=q.cat;
+      document.getElementById('qTitle').textContent=`Question ${qIdx+1} of ${questions.length}`;
+      document.getElementById('qText').innerHTML=q.q;
+      document.getElementById('optionsArea').innerHTML=q.opts.map((o,i)=>
+        `<div class="opt-btn" id="opt${i}" onclick="selectOpt(${i})">${String.fromCharCode(65+i)}) ${o}</div>`).join('');
+      document.getElementById('message').innerHTML='';
+      document.getElementById('explanation').style.display='none';
+      updateStats();
+    }
+
+    function selectOpt(i){if(answered)return;selected=i;
+      document.querySelectorAll('.opt-btn').forEach((b,j)=>b.classList.toggle('selected',j===i));}
+
+    function submitAnswer(){
+      if(answered||selected<0)return;answered=true;total++;
+      const q=questions[qIdx];
+      document.querySelectorAll('.opt-btn').forEach(b=>b.setAttribute('disabled',''));
+      if(selected===q.ans){score++;streak++;document.getElementById(`opt${selected}`).classList.add('correct');showMessage('✓ Correct!','success');}
+      else{streak=0;document.getElementById(`opt${selected}`).classList.add('wrong');document.getElementById(`opt${q.ans}`).classList.add('correct');showMessage('✗ Incorrect.','error');}
+      document.getElementById('explanation').style.display='block';
+      document.getElementById('expText').innerHTML=q.exp;
+      updateStats();
+    }
+
+    function nextQ(){qIdx++;loadQ();}
+    function updateStats(){
+      document.getElementById('scoreDisplay').textContent=`${score} / ${total}`;
+      document.getElementById('streakDisplay').textContent=streak;
+      document.getElementById('accuracyDisplay').textContent=total?Math.round(100*score/total)+'%':'—';
+      document.getElementById('progressFill').style.width=`${(qIdx/questions.length)*100}%`;
+    }
+    function showMessage(t,type){document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`;}
+    resetQuiz();
+  </script>
+</body>
+</html>
