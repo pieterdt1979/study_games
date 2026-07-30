@@ -223,3 +223,32 @@ canvas {
   border-bottom: 1px solid #2a3a5e;
   color: #ddd;
 }
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .container { padding: 1rem; }
+  h1 { font-size: 1.8rem; }
+  .subtitle { font-size: 0.9rem; margin-bottom: 1rem; }
+  .game-grid { grid-template-columns: 1fr; gap: 1rem; margin-top: 1rem; }
+  .game-card { padding: 1.2rem; }
+  .game-card .icon { font-size: 2rem; margin-bottom: 0.5rem; }
+  .game-card h3 { font-size: 1.1rem; }
+  .game-header h2 { font-size: 1.3rem; }
+  .game-info { padding: 0.8rem 1rem; }
+  .section-title { font-size: 1.1rem; margin: 1.5rem 0 0.5rem; }
+  .btn { padding: 0.7rem 1rem; font-size: 0.9rem; min-height: 44px; }
+  .controls { gap: 0.5rem; }
+  canvas { height: 320px !important; }
+  .message { font-size: 0.85rem; padding: 0.75rem; text-align: left; }
+}
+
+@media (max-width: 480px) {
+  .container { padding: 0.75rem; }
+  h1 { font-size: 1.5rem; }
+  .game-card { padding: 1rem; }
+  .game-card p { font-size: 0.8rem; }
+  .game-header h2 { font-size: 1.1rem; }
+  canvas { height: 260px !important; }
+  .controls { flex-direction: column; }
+  .controls .btn { width: 100%; }
+}
