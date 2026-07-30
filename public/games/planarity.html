@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Planarity Puzzle - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .game-layout { grid-template-columns: 1fr; }
+    }
+    .canvas-wrap { position: relative; }
+    canvas {
+      width: 100%;
+      height: 540px;
+      cursor: grab;
+      touch-action: none;
+    }
+    canvas:active { cursor: grabbing; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .stat-box h4 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .crossings-good { color: #2ecc71; }
+    .crossings-bad { color: #e74c3c; }
+    .theory-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+      border-left: 4px solid #f39c12;
+    }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.85rem; line-height: 1.6; }
+    .euler-check {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+      font-size: 0.85rem;
+      color: #bbb;
+      line-height: 1.7;
+    }
+    .euler-check h4 { color: #667eea; margin-bottom: 0.5rem; }
+    .pass { color: #2ecc71; }
+    .fail { color: #e74c3c; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>✏️ Planarity Puzzle</h2>
+    </div>
+
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p><strong>Drag vertices</strong> to rearrange the graph so that <strong>no two edges cross</strong>. If the graph is planar, you can always untangle it! If it's non-planar (contains a K₅ or K₃,₃ configuration), click "Non-Planar!" to declare it impossible. Use Euler's formula corollary: if e > 3v - 6, the graph CANNOT be planar.</p>
+    </div>
+
+    <div class="game-layout">
+      <div class="canvas-wrap">
+        <canvas id="graphCanvas"></canvas>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkPlanar()">Check (0 crossings?)</button>
+          <button class="btn btn-danger" onclick="declareNonPlanar()">Non-Planar!</button>
+          <button class="btn btn-secondary" onclick="scramble()">Scramble</button>
+          <button class="btn btn-secondary" onclick="nextLevel()">Next Graph</button>
+        </div>
+        <div id="message"></div>
+      </div>
+
+      <div class="sidebar">
+        <div class="stat-box">
+          <h4>Level</h4>
+          <div class="value" id="levelDisplay">1</div>
+        </div>
+        <div class="stat-box">
+          <h4>Crossings</h4>
+          <div class="value" id="crossingsDisplay">0</div>
+        </div>
+        <div class="stat-box">
+          <h4>Score</h4>
+          <div class="value" id="scoreDisplay">0</div>
+        </div>
+        <div class="euler-check">
+          <h4>Euler's Formula Check</h4>
+          <div id="eulerInfo">-</div>
+        </div>
+        <div class="theory-box">
+          <h4>Theory</h4>
+          <p id="theoryNote">A graph is <strong>planar</strong> if it can be drawn without edge crossings. <strong>Euler's formula:</strong> r = e - v + 2 (regions = edges - vertices + 2). <strong>Corollary:</strong> if e > 3v - 6, the graph is non-planar. For triangle-free graphs: e > 2v - 4 means non-planar.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let currentLevel = 0;
+    let score = 0;
+    let vertices = []; // {x, y}
+    let edges = []; // [a, b]
+    let isPlanar = true;
+    let dragging = -1;
+    let offsetX = 0, offsetY = 0;
+
+    const levels = [
+      {
+        name: "K4 (planar)",
+        verts: 4,
+        edges: [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]],
+        planar: true,
+        note: "K₄ is planar! It has v=4, e=6. Check: 3v-6 = 6, and e=6 ≤ 6. ✓ Euler's corollary doesn't rule it out. Drag vertices to untangle."
+      },
+      {
+        name: "Cube Q3 (planar)",
+        verts: 8,
+        edges: [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]],
+        planar: true,
+        note: "The cube graph Q₃ is planar (v=8, e=12, 3v-6=18 ≥ 12). Think of it as a square inside a square with corners connected. It has 6 regions (including outer)."
+      },
+      {
+        name: "K5 (non-planar!)",
+        verts: 5,
+        edges: [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]],
+        planar: false,
+        note: "K₅ has v=5, e=10. But 3v-6 = 9 < 10. So e > 3v-6 and K₅ is NON-PLANAR! By Kuratowski's theorem, any non-planar graph contains a K₅ or K₃,₃ configuration."
+      },
+      {
+        name: "K3,3 (non-planar!)",
+        verts: 6,
+        edges: [[0,3],[0,4],[0,5],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]],
+        planar: false,
+        note: "K₃,₃ has v=6, e=9. Check 3v-6=12 ≥ 9 — so the basic corollary doesn't help! But K₃,₃ is bipartite (triangle-free), so use: e ≤ 2v-4 = 8. Since 9 > 8, K₃,₃ is NON-PLANAR!"
+      },
+      {
+        name: "Petersen graph (non-planar!)",
+        verts: 10,
+        edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[5,7],[7,9],[9,6],[6,8],[8,5],[0,5],[1,6],[2,7],[3,8],[4,9]],
+        planar: false,
+        note: "The Petersen graph (v=10, e=15, 3v-6=24 ≥ 15) — the corollary doesn't rule it out! But it contains a K₃,₃ configuration (find it!). By Kuratowski's theorem it's non-planar."
+      },
+      {
+        name: "Wheel W4 (planar)",
+        verts: 5,
+        edges: [[0,1],[0,2],[0,3],[0,4],[1,2],[2,3],[3,4],[4,1]],
+        planar: true,
+        note: "W₄ (wheel on 4 outer vertices + center) has v=5, e=8, 3v-6=9 ≥ 8. It IS planar — think of a wheel: center connected to 4 vertices forming a square."
+      },
+      {
+        name: "K2,3 (planar)",
+        verts: 5,
+        edges: [[0,2],[0,3],[0,4],[1,2],[1,3],[1,4]],
+        planar: true,
+        note: "K₂,₃ is planar! (v=5, e=6, 2v-4=6 ≥ 6 for triangle-free check). Draw the 2 vertices on one side and 3 on the other — you can avoid crossings."
+      },
+      {
+        name: "Octahedron (planar)",
+        verts: 6,
+        edges: [[0,1],[0,2],[0,3],[0,4],[1,2],[2,3],[3,4],[4,1],[1,5],[2,5],[3,5],[4,5]],
+        planar: true,
+        note: "The octahedron has v=6, e=12, 3v-6=12 — exactly at the limit! It IS planar. When e = 3v-6 exactly, the graph is called a maximal planar graph (triangulation)."
+      },
+      {
+        name: "K5 minus edge (planar)",
+        verts: 5,
+        edges: [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[2,3],[2,4]],
+        planar: true,
+        note: "K₅ minus two edges! v=5, e=8, 3v-6=9 ≥ 8. Removing edges from K₅ can make it planar. With only 8 edges (lost the K₅ configuration), this one CAN be drawn without crossings."
+      },
+      {
+        name: "K3,3 plus edge (non-planar)",
+        verts: 6,
+        edges: [[0,3],[0,4],[0,5],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5],[0,1]],
+        planar: false,
+        note: "K₃,₃ plus an extra edge. Since K₃,₃ is already non-planar, adding edges can't help! It still contains K₃,₃ as a subgraph, so by Kuratowski's theorem: non-planar."
+      }
+    ];
+
+    function generatePositions(n) {
+      // Start with random-ish scrambled positions
+      const verts = [];
+      const cx = canvas.width / 2, cy = canvas.height / 2;
+      const radius = Math.min(canvas.width, canvas.height) * 0.35;
+      for (let i = 0; i < n; i++) {
+        const angle = (2 * Math.PI * i / n) + (Math.random() - 0.5) * 1.5;
+        const r = radius * (0.4 + Math.random() * 0.6);
+        verts.push({
+          x: cx + r * Math.cos(angle) + (Math.random() - 0.5) * 60,
+          y: cy + r * Math.sin(angle) + (Math.random() - 0.5) * 60
+        });
+      }
+      return verts;
+    }
+
+    function scramble() {
+      const level = levels[currentLevel % levels.length];
+      vertices = generatePositions(level.verts);
+      clampVertices();
+      draw();
+    }
+
+    function loadLevel() {
+      const level = levels[currentLevel % levels.length];
+      edges = level.edges.map(e => [...e]);
+      isPlanar = level.planar;
+      vertices = generatePositions(level.verts);
+      clampVertices();
+
+      document.getElementById('levelDisplay').textContent = (currentLevel % levels.length) + 1;
+      document.getElementById('theoryNote').innerHTML = level.note;
+      document.getElementById('message').innerHTML = '';
+      updateEulerCheck();
+      draw();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = 540;
+    }
+
+    function clampVertices() {
+      const margin = 25;
+      vertices.forEach(v => {
+        v.x = Math.max(margin, Math.min(canvas.width - margin, v.x));
+        v.y = Math.max(margin, Math.min(canvas.height - margin, v.y));
+      });
+    }
+
+    function countCrossings() {
+      let count = 0;
+      for (let i = 0; i < edges.length; i++) {
+        for (let j = i + 1; j < edges.length; j++) {
+          const [a1, b1] = edges[i];
+          const [a2, b2] = edges[j];
+          // Skip if they share a vertex
+          if (a1 === a2 || a1 === b2 || b1 === a2 || b1 === b2) continue;
+          if (segmentsIntersect(
+            vertices[a1].x, vertices[a1].y, vertices[b1].x, vertices[b1].y,
+            vertices[a2].x, vertices[a2].y, vertices[b2].x, vertices[b2].y
+          )) {
+            count++;
+          }
+        }
+      }
+      return count;
+    }
+
+    function segmentsIntersect(x1,y1,x2,y2,x3,y3,x4,y4) {
+      const d1 = direction(x3,y3,x4,y4,x1,y1);
+      const d2 = direction(x3,y3,x4,y4,x2,y2);
+      const d3 = direction(x1,y1,x2,y2,x3,y3);
+      const d4 = direction(x1,y1,x2,y2,x4,y4);
+      if (((d1 > 0 && d2 < 0) || (d1 < 0 && d2 > 0)) &&
+          ((d3 > 0 && d4 < 0) || (d3 < 0 && d4 > 0))) return true;
+      if (d1 === 0 && onSegment(x3,y3,x4,y4,x1,y1)) return true;
+      if (d2 === 0 && onSegment(x3,y3,x4,y4,x2,y2)) return true;
+      if (d3 === 0 && onSegment(x1,y1,x2,y2,x3,y3)) return true;
+      if (d4 === 0 && onSegment(x1,y1,x2,y2,x4,y4)) return true;
+      return false;
+    }
+
+    function direction(ax,ay,bx,by,cx,cy) {
+      return (bx-ax)*(cy-ay) - (by-ay)*(cx-ax);
+    }
+
+    function onSegment(ax,ay,bx,by,cx,cy) {
+      return Math.min(ax,bx) <= cx && cx <= Math.max(ax,bx) &&
+             Math.min(ay,by) <= cy && cy <= Math.max(ay,by);
+    }
+
+    function updateEulerCheck() {
+      const v = vertices.length;
+      const e = edges.length;
+      const limit1 = 3*v - 6;
+      const limit2 = 2*v - 4;
+      const hasTri = hasTriangle();
+
+      let html = `v = ${v}, e = ${e}<br>`;
+      html += `3v - 6 = ${limit1}: `;
+      if (e > limit1) {
+        html += `<span class="fail">e = ${e} > ${limit1} → NON-PLANAR!</span><br>`;
+      } else {
+        html += `<span class="pass">e = ${e} ≤ ${limit1} ✓ (inconclusive)</span><br>`;
+      }
+
+      if (!hasTri) {
+        html += `Triangle-free → 2v - 4 = ${limit2}: `;
+        if (e > limit2) {
+          html += `<span class="fail">e = ${e} > ${limit2} → NON-PLANAR!</span>`;
+        } else {
+          html += `<span class="pass">e = ${e} ≤ ${limit2} ✓</span>`;
+        }
+      } else {
+        html += `Has triangles (2v-4 test not applicable)`;
+      }
+
+      document.getElementById('eulerInfo').innerHTML = html;
+    }
+
+    function hasTriangle() {
+      const n = vertices.length;
+      const adj = Array.from({length: n}, () => new Set());
+      edges.forEach(([a,b]) => { adj[a].add(b); adj[b].add(a); });
+      for (let i = 0; i < n; i++) {
+        for (const j of adj[i]) {
+          if (j <= i) continue;
+          for (const k of adj[j]) {
+            if (k <= j) continue;
+            if (adj[i].has(k)) return true;
+          }
+        }
+      }
+      return false;
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      const crossings = countCrossings();
+      const crossEl = document.getElementById('crossingsDisplay');
+      crossEl.textContent = crossings;
+      crossEl.className = 'value ' + (crossings === 0 ? 'crossings-good' : 'crossings-bad');
+
+      // Find crossing edge pairs for highlighting
+      const crossingEdges = new Set();
+      for (let i = 0; i < edges.length; i++) {
+        for (let j = i + 1; j < edges.length; j++) {
+          const [a1,b1] = edges[i];
+          const [a2,b2] = edges[j];
+          if (a1===a2||a1===b2||b1===a2||b1===b2) continue;
+          if (segmentsIntersect(
+            vertices[a1].x,vertices[a1].y,vertices[b1].x,vertices[b1].y,
+            vertices[a2].x,vertices[a2].y,vertices[b2].x,vertices[b2].y
+          )) {
+            crossingEdges.add(i);
+            crossingEdges.add(j);
+          }
+        }
+      }
+
+      // Draw edges
+      edges.forEach(([a,b], idx) => {
+        ctx.beginPath();
+        ctx.moveTo(vertices[a].x, vertices[a].y);
+        ctx.lineTo(vertices[b].x, vertices[b].y);
+        if (crossingEdges.has(idx)) {
+          ctx.strokeStyle = '#e74c3c';
+          ctx.lineWidth = 2.5;
+        } else {
+          ctx.strokeStyle = crossings === 0 ? '#2ecc71' : '#4a5568';
+          ctx.lineWidth = 2;
+        }
+        ctx.stroke();
+      });
+
+      // Draw vertices
+      vertices.forEach((v, i) => {
+        ctx.beginPath();
+        ctx.arc(v.x, v.y, 18, 0, Math.PI * 2);
+        ctx.fillStyle = dragging === i ? '#667eea' : '#2a3a5e';
+        ctx.fill();
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i + 1, v.x, v.y);
+      });
+
+      // Victory glow
+      if (crossings === 0 && isPlanar) {
+        ctx.strokeStyle = 'rgba(46,204,113,0.3)';
+        ctx.lineWidth = 4;
+        ctx.strokeRect(4, 4, canvas.width-8, canvas.height-8);
+      }
+    }
+
+    // Drag handling
+    canvas.addEventListener('pointerdown', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      for (let i = 0; i < vertices.length; i++) {
+        const dx = x - vertices[i].x, dy = y - vertices[i].y;
+        if (dx*dx + dy*dy < 20*20) {
+          dragging = i;
+          offsetX = dx;
+          offsetY = dy;
+          canvas.setPointerCapture(e.pointerId);
+          draw();
+          return;
+        }
+      }
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+      if (dragging < 0) return;
+      const rect = canvas.getBoundingClientRect();
+      vertices[dragging].x = e.clientX - rect.left - offsetX;
+      vertices[dragging].y = e.clientY - rect.top - offsetY;
+      clampVertices();
+      draw();
+    });
+
+    canvas.addEventListener('pointerup', () => {
+      dragging = -1;
+      draw();
+    });
+
+    function checkPlanar() {
+      const crossings = countCrossings();
+      if (crossings === 0) {
+        if (isPlanar) {
+          score += 10;
+          showMessage(`🎉 Perfect! You found a planar embedding with 0 crossings. By Euler's formula: r = e - v + 2 = ${edges.length} - ${vertices.length} + 2 = ${edges.length - vertices.length + 2} regions. +10 points`, 'success');
+        } else {
+          showMessage(`Hmm, you have 0 crossings shown but this graph is actually non-planar. This shouldn't happen — try scrambling and looking more carefully, or declare it non-planar!`, 'info');
+        }
+      } else {
+        showMessage(`Still ${crossings} crossing${crossings>1?'s':''}. Keep dragging vertices to eliminate crossings! Red edges are the ones crossing.`, 'error');
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function declareNonPlanar() {
+      if (!isPlanar) {
+        score += 10;
+        const level = levels[currentLevel % levels.length];
+        showMessage(`🎉 Correct! "${level.name}" is non-planar. ${level.note} +10 points`, 'success');
+      } else {
+        showMessage(`Incorrect! This graph IS planar — keep trying to untangle it by dragging vertices.`, 'error');
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function nextLevel() {
+      currentLevel++;
+      resizeCanvas();
+      loadLevel();
+    }
+
+    function showMessage(text, type) {
+      document.getElementById('message').innerHTML = `<div class="message message-${type}">${text}</div>`;
+    }
+
+    // Init
+    resizeCanvas();
+    loadLevel();
+    window.addEventListener('resize', () => { resizeCanvas(); clampVertices(); draw(); });
+  </script>
+</body>
+</html>

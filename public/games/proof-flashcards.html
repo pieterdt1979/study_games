@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Proof Flashcards - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .theorem-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem;
+      border-left: 5px solid #667eea; }
+    .theorem-box h3 { color: #667eea; margin-bottom: 0.75rem; font-size: 1rem; }
+    .theorem-box .statement { font-size: 1.05rem; line-height: 1.8; color: #eee; font-style: italic; }
+    .proof-area { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .proof-area h4 { color: #2ecc71; margin-bottom: 1rem; }
+    .proof-steps { min-height: 150px; padding: 0.5rem; background: #1a1a2e; border-radius: 8px;
+      border: 2px dashed #2a3a5e; margin-bottom: 1rem; }
+    .proof-step { background: #16213e; border: 1px solid #2ecc71; border-radius: 6px;
+      padding: 0.6rem 1rem; margin: 0.4rem 0; font-size: 0.9rem; color: #ddd; line-height: 1.5;
+      cursor: grab; display: flex; align-items: center; gap: 0.5rem; }
+    .proof-step .step-num { background: #2ecc71; color: #000; border-radius: 50%;
+      width: 22px; height: 22px; display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: bold; flex-shrink: 0; }
+    .choices-area { margin-top: 1rem; }
+    .choices-area h4 { color: #f39c12; margin-bottom: 0.75rem; }
+    .choice-btn { background: #1a1a2e; border: 1px solid #4a5568; border-radius: 6px;
+      padding: 0.6rem 1rem; margin: 0.3rem 0; font-size: 0.88rem; color: #ccc;
+      cursor: pointer; transition: all 0.15s; display: block; width: 100%; text-align: left; line-height: 1.5; }
+    .choice-btn:hover { border-color: #667eea; background: rgba(102,126,234,0.1); }
+    .choice-btn.used { opacity: 0.4; pointer-events: none; border-color: #2ecc71; }
+    .choice-btn.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.1); }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>📜 Proof Flashcards</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>A theorem is displayed. Reconstruct its proof by selecting steps <strong>in the correct order</strong> from the shuffled choices below. Each step builds on the previous one. This trains you to reproduce proofs in exams!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="theorem-box">
+          <h3 id="theoremTitle">Theorem</h3>
+          <div class="statement" id="theoremStatement"></div>
+        </div>
+        <div class="proof-area">
+          <h4>Proof (build it step by step)</h4>
+          <div class="proof-steps" id="proofSteps"></div>
+        </div>
+        <div class="choices-area">
+          <h4>Available Steps (click in correct order)</h4>
+          <div id="choicesArea"></div>
+        </div>
+        <div class="controls" style="margin-top:1rem">
+          <button class="btn btn-primary" onclick="checkProof()">Check Proof</button>
+          <button class="btn btn-secondary" onclick="undoStep()">Undo Last</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+          <button class="btn btn-secondary" onclick="nextProof()">Next Theorem</button>
+        </div>
+        <div id="message"></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Theorem</h4><div class="value" id="levelDisplay">1</div></div>
+        <div class="stat-box"><h4>Steps Placed</h4><div class="value" id="stepsPlaced">0 / 0</div></div>
+        <div class="theory-box">
+          <h4>Study Unit</h4>
+          <p id="unitNote">-</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, levelIdx = 0;
+    let currentProof = null, placedSteps = [], choiceUsed = [];
+
+    const proofs = [
+      { title: "Edge Counting Theorem (Theorem 1, §1.3)",
+        unit: "Unit 1: Introduction to Graphs",
+        statement: "In any graph G, the sum of the degrees of all vertices equals twice the number of edges: Σ d(v) = 2e.",
+        steps: [
+          "Consider any edge e = uv in the graph.",
+          "This edge contributes 1 to the degree of u and 1 to the degree of v.",
+          "Therefore, each edge contributes exactly 2 to the total sum of all degrees.",
+          "Since there are e edges in total, each contributing 2 to the degree sum,",
+          "we conclude that Σ d(v) = 2e. □"
+        ],
+        distractors: [
+          "Each vertex contributes its degree to the edge count.",
+          "Since the graph is connected, every vertex has degree ≥ 1."
+        ]},
+      { title: "Corollary: Even number of odd-degree vertices",
+        unit: "Unit 1: Introduction to Graphs",
+        statement: "In any graph, the number of vertices of odd degree is even.",
+        steps: [
+          "By the Edge Counting Theorem, Σ d(v) = 2e, which is even.",
+          "Split the sum: Σ d(v) = (sum over even-degree vertices) + (sum over odd-degree vertices).",
+          "The sum over even-degree vertices is even (sum of even numbers).",
+          "Since the total sum is even and the even-degree part is even, the odd-degree part must also be even.",
+          "A sum of odd numbers is even only when there are an even number of terms.",
+          "Therefore the number of odd-degree vertices is even. □"
+        ],
+        distractors: [
+          "Each odd-degree vertex is adjacent to an even-degree vertex.",
+          "By Euler's theorem, the graph has an Euler cycle."
+        ]},
+      { title: "Euler Cycle Theorem (Theorem 1, §2.1)",
+        unit: "Unit 3: Euler Cycles",
+        statement: "A connected multigraph G has an Euler cycle if and only if every vertex has even degree.",
+        steps: [
+          "(⇒) Suppose G has an Euler cycle C. Each time C passes through a vertex v, it uses one edge to enter and one to leave.",
+          "Since C uses each edge exactly once and uses edges in pairs at each vertex, d(v) is even for all v.",
+          "(⇐) Suppose G is connected and all vertices have even degree. Start a trail T at any vertex v₀.",
+          "At each step, since degrees are even, whenever we enter a vertex we can always leave (edges come in pairs).",
+          "The trail must eventually return to v₀ (since we can always continue except at the start).",
+          "If T doesn't use all edges, there exists a vertex w on T incident with an unused edge (by connectivity).",
+          "Start a new trail at w using unused edges; by the same argument it returns to w.",
+          "Splice this new trail into T. Repeat until all edges are used. The result is an Euler cycle. □"
+        ],
+        distractors: [
+          "By induction on the number of edges.",
+          "Since G is connected, it has a spanning tree with n-1 edges.",
+          "Apply Dirac's theorem to guarantee a Hamilton circuit."
+        ]},
+      { title: "Corollary of Euler's Formula: e ≤ 3v − 6",
+        unit: "Unit 2: Planar Graphs",
+        statement: "If G is a connected planar graph with e > 1 edges and v vertices, then e ≤ 3v − 6.",
+        steps: [
+          "By Euler's formula for planar graphs: r = e − v + 2, where r is the number of regions.",
+          "Each region is bounded by at least 3 edges (since e > 1, no region has degree < 3).",
+          "Each edge borders at most 2 regions. So if we sum the degrees of all regions: Σ deg(rᵢ) = 2e.",
+          "Since each region has degree ≥ 3: 2e = Σ deg(rᵢ) ≥ 3r.",
+          "Therefore r ≤ 2e/3.",
+          "Substituting into Euler's formula: 2e/3 ≥ r = e − v + 2.",
+          "Rearranging: 2e/3 ≥ e − v + 2 → 2e ≥ 3e − 3v + 6 → 3v − 6 ≥ e. □"
+        ],
+        distractors: [
+          "Since G is bipartite, each region has degree ≥ 4.",
+          "Apply Kuratowski's theorem to find a K₅ configuration.",
+          "The graph has exactly e − v + 1 independent circuits."
+        ]},
+      { title: "Tree Theorem: e = n − 1 (Theorem 2, §3.1)",
+        unit: "Unit 5: Trees",
+        statement: "A tree with n vertices has exactly n − 1 edges.",
+        steps: [
+          "Proof by induction on n. Base case: n = 1 (single vertex, 0 edges). ✓ (e = 1−1 = 0)",
+          "Inductive hypothesis: assume all trees with fewer than n vertices have exactly n−1 edges.",
+          "Let T be a tree with n vertices (n ≥ 2). Since T is connected and has no circuits, T has a leaf v (vertex of degree 1).",
+          "Remove v and its incident edge to get T′. T′ is still connected and circuit-free (since removing a leaf preserves both).",
+          "T′ is a tree with n−1 vertices, so by induction it has (n−1)−1 = n−2 edges.",
+          "T has one more edge than T′, so T has (n−2)+1 = n−1 edges. □"
+        ],
+        distractors: [
+          "Apply Euler's formula with r = 1 (trees have one region).",
+          "By the handshaking lemma, Σ d(v) = 2(n−1).",
+          "Since T is bipartite, we can 2-colour its vertices."
+        ]},
+      { title: "Binomial Theorem",
+        unit: "Unit 8: Binomial Identities",
+        statement: "(1 + x)ⁿ = Σ C(n,k) xᵏ for k = 0, 1, ..., n.",
+        steps: [
+          "Expand (1+x)ⁿ = (1+x)(1+x)···(1+x) as a product of n factors.",
+          "When multiplying out, each term is formed by choosing either 1 or x from each of the n factors.",
+          "A term xᵏ arises when we choose x from exactly k factors (and 1 from the remaining n−k factors).",
+          "The number of ways to choose which k factors contribute an x is C(n,k).",
+          "Therefore the coefficient of xᵏ is C(n,k), giving (1+x)ⁿ = Σ C(n,k) xᵏ. □"
+        ],
+        distractors: [
+          "By induction on n, using Pascal's identity C(n,k) = C(n−1,k−1) + C(n−1,k).",
+          "Differentiate both sides and set x = 0.",
+          "This follows from the multinomial theorem."
+        ]},
+      { title: "Kruskal's Algorithm Correctness (Theorem 1, §4.2)",
+        unit: "Unit 6: Minimal Spanning Trees",
+        statement: "Kruskal's algorithm produces a minimal spanning tree.",
+        steps: [
+          "Let T be the spanning tree produced by Kruskal's algorithm and suppose T is not minimal.",
+          "Let T* be a minimal spanning tree that shares the most edges with T.",
+          "Let e be the first edge chosen by Kruskal's that is in T but not in T*.",
+          "Adding e to T* creates a unique circuit C in T* ∪ {e}.",
+          "C must contain an edge e' that is not in T (otherwise T would contain a circuit).",
+          "Since Kruskal's chose e before e', we have weight(e) ≤ weight(e').",
+          "Replace e' with e in T* to get T** = T* − {e'} + {e}. This is still a spanning tree with weight ≤ weight(T*).",
+          "T** is a minimal spanning tree sharing more edges with T than T* does — contradiction. □"
+        ],
+        distractors: [
+          "Since Kruskal's is a greedy algorithm, it always finds the global optimum by the greedy choice property.",
+          "By induction on the number of edges selected.",
+          "Apply the cut property: the minimum edge crossing any cut must be in the MST."
+        ]}
+    ];
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function loadProof() {
+      currentProof = proofs[levelIdx % proofs.length];
+      placedSteps = [];
+      document.getElementById('theoremTitle').textContent = currentProof.title;
+      document.getElementById('theoremStatement').textContent = currentProof.statement;
+      document.getElementById('levelDisplay').textContent = levelIdx + 1;
+      document.getElementById('unitNote').textContent = currentProof.unit;
+      document.getElementById('message').innerHTML = '';
+
+      // Shuffle steps + distractors
+      const allChoices = [...currentProof.steps, ...currentProof.distractors];
+      const shuffled = shuffle(allChoices);
+      choiceUsed = new Array(shuffled.length).fill(false);
+
+      const choicesDiv = document.getElementById('choicesArea');
+      choicesDiv.innerHTML = shuffled.map((step, i) =>
+        `<div class="choice-btn" id="choice-${i}" onclick="selectStep(${i})">${step}</div>`
+      ).join('');
+
+      // Store shuffled order for reference
+      currentProof._shuffled = shuffled;
+      updateProofDisplay();
+    }
+
+    function selectStep(idx) {
+      if (choiceUsed[idx]) return;
+      const selectedText = currentProof._shuffled[idx];
+
+      // Check if this is the correct next step
+      const nextStepIdx = placedSteps.length;
+      if (nextStepIdx >= currentProof.steps.length) return;
+
+      if (selectedText === currentProof.steps[nextStepIdx]) {
+        // Correct!
+        placedSteps.push(selectedText);
+        choiceUsed[idx] = true;
+        document.getElementById(`choice-${idx}`).classList.add('used');
+      } else {
+        // Wrong step
+        document.getElementById(`choice-${idx}`).classList.add('wrong');
+        setTimeout(() => document.getElementById(`choice-${idx}`).classList.remove('wrong'), 800);
+        showMessage(`That's not the next step. Think about what logically follows from what you've built so far.`, 'error');
+      }
+      updateProofDisplay();
+    }
+
+    function undoStep() {
+      if (placedSteps.length === 0) return;
+      const removed = placedSteps.pop();
+      // Find and un-use the choice
+      const idx = currentProof._shuffled.indexOf(removed);
+      if (idx >= 0) {
+        choiceUsed[idx] = false;
+        document.getElementById(`choice-${idx}`).classList.remove('used');
+      }
+      document.getElementById('message').innerHTML = '';
+      updateProofDisplay();
+    }
+
+    function updateProofDisplay() {
+      const stepsDiv = document.getElementById('proofSteps');
+      if (placedSteps.length === 0) {
+        stepsDiv.innerHTML = '<p style="color:#666;text-align:center;padding:1rem">Click steps below in the correct order to build the proof...</p>';
+      } else {
+        stepsDiv.innerHTML = placedSteps.map((s, i) =>
+          `<div class="proof-step"><span class="step-num">${i+1}</span>${s}</div>`
+        ).join('');
+      }
+      document.getElementById('stepsPlaced').textContent = `${placedSteps.length} / ${currentProof.steps.length}`;
+
+      // Auto-check if complete
+      if (placedSteps.length === currentProof.steps.length) {
+        score += 10;
+        document.getElementById('scoreDisplay').textContent = score;
+        showMessage(`🎉 Proof complete! You reconstructed the proof of "${currentProof.title}" perfectly. +10 points`, 'success');
+      }
+    }
+
+    function checkProof() {
+      if (placedSteps.length === currentProof.steps.length) {
+        showMessage('Proof is already complete! Click Next for another theorem.', 'success');
+      } else if (placedSteps.length === 0) {
+        showMessage('Start by clicking the first step of the proof from the choices below.', 'info');
+      } else {
+        showMessage(`You have ${placedSteps.length}/${currentProof.steps.length} steps correct so far. Keep going!`, 'info');
+      }
+    }
+
+    function showHint() {
+      const nextIdx = placedSteps.length;
+      if (nextIdx >= currentProof.steps.length) { showMessage('Proof complete!', 'success'); return; }
+      const nextStep = currentProof.steps[nextIdx];
+      const preview = nextStep.substring(0, 40) + '...';
+      showMessage(`Hint: The next step starts with: "${preview}"`, 'info');
+    }
+
+    function nextProof() { levelIdx++; loadProof(); }
+    function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
+
+    loadProof();
+  </script>
+</body>
+</html>

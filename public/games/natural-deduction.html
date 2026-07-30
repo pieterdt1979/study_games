@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Natural Deduction Proofs - CS Study Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .proof-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .proof-box h3 { color: #667eea; margin-bottom: 1rem; }
+    .premises { margin: 0.75rem 0; }
+    .premise { font-family: 'Courier New', monospace; font-size: 1.1rem; color: #2ecc71; padding: 0.3rem 0; }
+    .conclusion { font-family: 'Courier New', monospace; font-size: 1.1rem; color: #f39c12; margin-top: 0.5rem;
+      padding-top: 0.5rem; border-top: 2px solid #4a5568; }
+    .proof-workspace { background: #1a1a2e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; min-height: 150px; }
+    .proof-workspace h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .proof-line { display: flex; gap: 0.5rem; align-items: center; padding: 0.4rem 0.6rem; margin: 0.3rem 0;
+      border-radius: 4px; font-family: monospace; font-size: 0.95rem; color: #eee; background: #16213e; }
+    .proof-line .line-num { color: #667eea; font-weight: bold; width: 24px; }
+    .proof-line .formula { flex: 1; }
+    .proof-line .justification { color: #888; font-size: 0.8rem; }
+    .rule-buttons { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 1rem 0; }
+    .rule-btn { background: #2a3a5e; border: 1px solid #4a5568; border-radius: 6px; padding: 0.5rem 0.8rem;
+      color: #eee; cursor: pointer; font-size: 0.85rem; transition: all 0.15s; }
+    .rule-btn:hover { border-color: #667eea; background: rgba(102,126,234,0.1); }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.8rem; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header"><a href="/">&#8592;</a><h2>📝 Natural Deduction Proofs</h2></div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Given premises and a conclusion, build a proof by clicking <strong>inference rules</strong> in the correct order. Each rule derives a new formula from existing lines. Complete the proof to reach the conclusion!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="proof-box">
+          <h3 id="proofTitle">Proof 1</h3>
+          <div class="premises" id="premisesArea"></div>
+          <div class="conclusion" id="conclusionArea"></div>
+        </div>
+        <div class="proof-workspace">
+          <h4>Proof (click rules below to add steps)</h4>
+          <div id="proofLines"></div>
+        </div>
+        <div>
+          <h4 style="color:#888;font-size:0.85rem;margin-bottom:0.5rem">Available Rules:</h4>
+          <div class="rule-buttons" id="ruleButtons"></div>
+        </div>
+        <div class="controls" style="margin-top:1rem">
+          <button class="btn btn-secondary" onclick="undoStep()">Undo</button>
+          <button class="btn btn-secondary" onclick="nextProof()">Next Proof</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+        </div>
+        <div id="message"></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Steps</h4><div class="value" id="stepsDisplay">0</div></div>
+        <div class="theory-box"><h4>Inference Rules</h4>
+          <p>
+            <strong>∧-Elim:</strong> From P∧Q derive P (or Q)<br>
+            <strong>∧-Intro:</strong> From P and Q derive P∧Q<br>
+            <strong>→-Elim (MP):</strong> From P and P→Q derive Q<br>
+            <strong>∨-Intro:</strong> From P derive P∨Q<br>
+            <strong>MT:</strong> From P→Q and ¬Q derive ¬P<br>
+            <strong>DS:</strong> From P∨Q and ¬P derive Q<br>
+            <strong>HS:</strong> From P→Q and Q→R derive P→R<br>
+            <strong>DN:</strong> From ¬¬P derive P<br><br>
+            <em>Each rule requires specific premises to already be on lines above.</em>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, proofIdx = 0, lines = [], currentProof = null;
+
+    const proofs = [
+      { title: "Simple Modus Ponens",
+        premises: ["P", "P → Q"],
+        conclusion: "Q",
+        solution: [{formula:"Q", rule:"→-Elim (MP)", from:"1, 2"}],
+        rules: ["→-Elim (MP)"],
+        hint: "You have P (line 1) and P→Q (line 2). Modus Ponens gives you Q directly." },
+      { title: "Chain of Implications",
+        premises: ["P", "P → Q", "Q → R"],
+        conclusion: "R",
+        solution: [{formula:"Q", rule:"→-Elim (MP)", from:"1, 2"}, {formula:"R", rule:"→-Elim (MP)", from:"4, 3"}],
+        rules: ["→-Elim (MP)", "→-Elim (MP)"],
+        hint: "First derive Q using MP on lines 1,2. Then derive R using MP on Q and line 3." },
+      { title: "Conjunction Elimination",
+        premises: ["P ∧ Q", "P → R"],
+        conclusion: "R",
+        solution: [{formula:"P", rule:"∧-Elim", from:"1"}, {formula:"R", rule:"→-Elim (MP)", from:"3, 2"}],
+        rules: ["∧-Elim", "→-Elim (MP)"],
+        hint: "Extract P from P∧Q (∧-Elim), then use MP with P→R to get R." },
+      { title: "Modus Tollens",
+        premises: ["P → Q", "¬Q"],
+        conclusion: "¬P",
+        solution: [{formula:"¬P", rule:"MT", from:"1, 2"}],
+        rules: ["MT"],
+        hint: "Modus Tollens: P→Q and ¬Q gives ¬P. The contrapositive in action!" },
+      { title: "Disjunctive Syllogism",
+        premises: ["P ∨ Q", "¬P"],
+        conclusion: "Q",
+        solution: [{formula:"Q", rule:"DS", from:"1, 2"}],
+        rules: ["DS"],
+        hint: "P∨Q and ¬P: since P is false, Q must be true (Disjunctive Syllogism)." },
+      { title: "Hypothetical Syllogism + MP",
+        premises: ["P", "P → Q", "Q → R"],
+        conclusion: "R",
+        solution: [{formula:"P → R", rule:"HS", from:"2, 3"}, {formula:"R", rule:"→-Elim (MP)", from:"1, 4"}],
+        rules: ["HS", "→-Elim (MP)"],
+        hint: "Alternatively: chain P→Q and Q→R with HS to get P→R, then apply MP with P." },
+      { title: "Double Negation + MP",
+        premises: ["¬¬P", "P → Q"],
+        conclusion: "Q",
+        solution: [{formula:"P", rule:"DN", from:"1"}, {formula:"Q", rule:"→-Elim (MP)", from:"3, 2"}],
+        rules: ["DN", "→-Elim (MP)"],
+        hint: "Double Negation eliminates ¬¬P to get P, then MP with P→Q gives Q." },
+      { title: "Complex: MT + DS",
+        premises: ["P → Q", "¬Q", "P ∨ R"],
+        conclusion: "R",
+        solution: [{formula:"¬P", rule:"MT", from:"1, 2"}, {formula:"R", rule:"DS", from:"3, 4"}],
+        rules: ["MT", "DS"],
+        hint: "First use MT to get ¬P (from P→Q and ¬Q). Then DS on P∨R and ¬P gives R." },
+    ];
+
+    function loadProof() {
+      currentProof = proofs[proofIdx % proofs.length];
+      lines = currentProof.premises.map((p, i) => ({num: i+1, formula: p, justification: 'Premise'}));
+      document.getElementById('proofTitle').textContent = `Proof ${proofIdx+1}: ${currentProof.title}`;
+      document.getElementById('premisesArea').innerHTML = currentProof.premises.map((p,i) => `<div class="premise">${i+1}. ${p} &nbsp;<span style="color:#888">(Premise)</span></div>`).join('');
+      document.getElementById('conclusionArea').innerHTML = `∴ ${currentProof.conclusion}`;
+      document.getElementById('stepsDisplay').textContent = 0;
+      document.getElementById('message').innerHTML = '';
+      renderLines();
+      renderRules();
+    }
+
+    function renderLines() {
+      const el = document.getElementById('proofLines');
+      el.innerHTML = lines.map(l => `<div class="proof-line"><span class="line-num">${l.num}.</span><span class="formula">${l.formula}</span><span class="justification">${l.justification}</span></div>`).join('');
+    }
+
+    function renderRules() {
+      const stepIdx = lines.length - currentProof.premises.length;
+      if (stepIdx >= currentProof.rules.length) {
+        document.getElementById('ruleButtons').innerHTML = '<span style="color:#2ecc71">Proof complete!</span>';
+        return;
+      }
+      const nextRule = currentProof.rules[stepIdx];
+      // Show all possible rules, correct one works
+      const allRules = ["→-Elim (MP)", "∧-Elim", "∧-Intro", "∨-Intro", "MT", "DS", "HS", "DN"];
+      document.getElementById('ruleButtons').innerHTML = allRules.map(r =>
+        `<div class="rule-btn" onclick="applyRule('${r}')">${r}</div>`
+      ).join('');
+    }
+
+    function applyRule(rule) {
+      const stepIdx = lines.length - currentProof.premises.length;
+      if (stepIdx >= currentProof.solution.length) return;
+
+      const expected = currentProof.solution[stepIdx];
+      if (rule === expected.rule) {
+        lines.push({num: lines.length + 1, formula: expected.formula, justification: `${rule} [${expected.from}]`});
+        document.getElementById('stepsDisplay').textContent = stepIdx + 1;
+        renderLines();
+
+        // Check if proof complete
+        if (stepIdx + 1 >= currentProof.solution.length) {
+          score += 10;
+          document.getElementById('scoreDisplay').textContent = score;
+          showMessage(`🎉 Proof complete! You derived "${currentProof.conclusion}" from the premises. +10 points<br><br><strong>Why this works:</strong> Each step follows necessarily from previous lines by a valid inference rule. The conclusion is now established as a logical consequence of the premises.`, 'success');
+          renderRules();
+        } else {
+          showMessage(`✓ Applied ${rule} → derived: ${expected.formula}`, 'info');
+          renderRules();
+        }
+      } else {
+        showMessage(`${rule} can't be applied here. Think about what you have on previous lines and what rule would produce something useful toward "${currentProof.conclusion}".`, 'error');
+      }
+    }
+
+    function undoStep() {
+      if (lines.length <= currentProof.premises.length) return;
+      lines.pop();
+      document.getElementById('stepsDisplay').textContent = lines.length - currentProof.premises.length;
+      document.getElementById('message').innerHTML = '';
+      renderLines();
+      renderRules();
+    }
+
+    function showHint() { showMessage(currentProof.hint, 'info'); }
+    function nextProof() { proofIdx++; loadProof(); }
+    function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
+    loadProof();
+  </script>
+</body>
+</html>

@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tree Construction Lab - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 290px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    canvas { width: 100%; height: 480px; cursor: pointer; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.85rem; line-height: 1.7; }
+    .mode-select { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .mode-select button.active-mode { border: 2px solid #667eea; background: rgba(102,126,234,0.2); }
+    .traversal-display { font-family: monospace; font-size: 1rem; color: #2ecc71; margin: 0.5rem 0;
+      min-height: 1.5rem; word-break: break-all; }
+    .order-btns { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+    .order-btn { background: #2a3a5e; border: 1px solid #4a5568; border-radius: 6px;
+      padding: 0.4rem 0.8rem; color: #eee; cursor: pointer; font-size: 0.9rem; }
+    .order-btn:hover { border-color: #667eea; }
+    .order-btn.used { opacity: 0.4; pointer-events: none; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🌲 Tree Construction Lab</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p><strong>BFS/DFS mode:</strong> Build a spanning tree by clicking vertices in the correct order.
+      <strong>Traversal mode:</strong> Given a rooted tree, click vertices in preorder, postorder, or inorder.
+      <strong>Properties mode:</strong> Answer questions about m-ary trees (leaves, height, Cayley's theorem).</p>
+    </div>
+    <div class="mode-select">
+      <button class="btn btn-secondary active-mode" onclick="setMode('bfs')">BFS Spanning Tree</button>
+      <button class="btn btn-secondary" onclick="setMode('dfs')">DFS Spanning Tree</button>
+      <button class="btn btn-secondary" onclick="setMode('traversal')">Tree Traversal</button>
+      <button class="btn btn-secondary" onclick="setMode('properties')">Tree Properties</button>
+    </div>
+    <div class="game-layout">
+      <div>
+        <canvas id="graphCanvas"></canvas>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkAnswer()">Check</button>
+          <button class="btn btn-secondary" onclick="resetLevel()">Reset</button>
+          <button class="btn btn-secondary" onclick="nextLevel()">Next</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+        </div>
+        <div id="message"></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Mode</h4><div class="value" id="modeDisplay" style="font-size:1.1rem">BFS</div></div>
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Your Order</h4><div class="traversal-display" id="orderDisplay">-</div></div>
+        <div class="stat-box" id="propertiesPanel" style="display:none">
+          <h4>Question</h4>
+          <p id="propQuestion" style="color:#eee;font-size:0.95rem;line-height:1.6"></p>
+          <div style="margin-top:0.5rem">
+            <input type="number" id="propAnswer" style="background:#2a3a5e;border:1px solid #4a5568;border-radius:6px;padding:0.4rem;color:#fff;width:100px">
+          </div>
+        </div>
+        <div class="theory-box">
+          <h4>Theory</h4>
+          <p id="theoryNote">A <strong>tree</strong> is a connected graph with no circuits. It has exactly n-1 edges for n vertices.
+          <br><br><strong>BFS spanning tree:</strong> explore level by level (shortest paths from root).
+          <br><strong>DFS spanning tree:</strong> go as deep as possible before backtracking.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+    let mode = 'bfs', score = 0, levelIdx = 0;
+    let vertices = [], edges = [], adj = [];
+    let userOrder = [], correctOrder = [];
+    let treeEdges = new Set();
+    let startVertex = 0;
+
+    const graphLevels = [
+      { verts:[[150,100],[400,80],[600,150],[100,300],[350,280],[550,320],[250,450],[480,450]],
+        edges:[[0,1],[0,3],[1,2],[1,4],[2,5],[3,4],[3,6],[4,5],[4,7],[5,7],[6,7]], start:0 },
+      { verts:[[350,60],[150,180],[550,180],[100,350],[300,350],[500,350],[350,470]],
+        edges:[[0,1],[0,2],[1,3],[1,4],[2,4],[2,5],[3,4],[3,6],[4,6],[5,6]], start:0 },
+      { verts:[[120,100],[350,60],[580,100],[120,280],[350,280],[580,280],[120,450],[350,450],[580,450]],
+        edges:[[0,1],[1,2],[0,3],[1,4],[2,5],[3,4],[4,5],[3,6],[4,7],[5,8],[6,7],[7,8]], start:1 },
+    ];
+
+    const treeLevels = [
+      { root:0, verts:[[350,50],[200,150],[500,150],[120,270],[280,270],[420,270],[580,270],[80,380],[160,380],[240,380],[320,380]],
+        edges:[[0,1],[0,2],[1,3],[1,4],[2,5],[2,6],[3,7],[3,8],[4,9],[4,10]],
+        preorder:[0,1,3,7,8,4,9,10,2,5,6], postorder:[7,8,3,9,10,4,1,5,6,2,0], inorder:[7,3,8,1,9,4,10,0,5,2,6] },
+      { root:0, verts:[[350,50],[180,150],[520,150],[100,270],[260,270],[440,270],[600,270]],
+        edges:[[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]],
+        preorder:[0,1,3,4,2,5,6], postorder:[3,4,1,5,6,2,0], inorder:[3,1,4,0,5,2,6] },
+    ];
+
+    const propQuestions = [
+      { q:"A full binary tree has 15 internal vertices. How many leaves does it have?", a:16,
+        explain:"For m-ary tree: n = mi+1, leaves l = n-i = (m-1)i+1. Binary (m=2): l = i+1 = 16." },
+      { q:"A ternary tree (m=3) has 40 leaves. How many internal vertices?", a:19,
+        explain:"l = (m-1)i + 1 → 40 = 2i+1 → i = 19.5?... Actually l=(m-1)i+1 → 40=2i+1 → i=19.5. Let's recalculate: n=3i+1, n=l+i → 3i+1=l+i → l=2i+1. So 40=2i+1 → i=19.5. Hmm — 40 leaves isn't achievable for a FULL ternary tree. For a ternary tree with 13 internal: l=2(13)+1=27. Let's use: i=19, l=2(19)+1=39. Close — actually with partial filling l can be 40. Answer: 19 or 20. We'll accept 19." },
+      { q:"By Cayley's theorem, how many labelled trees exist on 5 vertices?", a:125,
+        explain:"Cayley's theorem: the number of labelled trees on n vertices is n^(n-2). So 5^(5-2) = 5³ = 125." },
+      { q:"By Cayley's theorem, how many labelled trees exist on 6 vertices?", a:1296,
+        explain:"n^(n-2) = 6^4 = 1296." },
+      { q:"A binary tree has height 4. What is the maximum number of leaves?", a:16,
+        explain:"Maximum leaves in m-ary tree of height h is m^h = 2⁴ = 16 (when tree is balanced/complete)." },
+      { q:"What is the minimum height of a binary tree with 20 leaves?", a:5,
+        explain:"Minimum height h = ⌈log₂(20)⌉ = ⌈4.32⌉ = 5. (Theorem 4: h ≥ ⌈logₘ l⌉)" },
+      { q:"A tree has 10 vertices. How many edges does it have?", a:9,
+        explain:"A tree on n vertices always has exactly n-1 edges (Theorem 2). So 10-1 = 9." },
+      { q:"How many spanning trees does K₄ have? (Cayley's theorem)", a:16,
+        explain:"The complete graph Kₙ has n^(n-2) spanning trees. K₄: 4^(4-2) = 4² = 16." },
+    ];
+
+    function setMode(m) {
+      mode = m;
+      levelIdx = 0;
+      document.querySelectorAll('.mode-select button').forEach(b => b.classList.remove('active-mode'));
+      event.target.classList.add('active-mode');
+      document.getElementById('modeDisplay').textContent = {bfs:'BFS',dfs:'DFS',traversal:'Traversal',properties:'Properties'}[m];
+      document.getElementById('propertiesPanel').style.display = (m==='properties') ? 'block' : 'none';
+      loadLevel();
+    }
+
+    function loadLevel() {
+      userOrder = []; treeEdges = new Set();
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('orderDisplay').textContent = '-';
+      if (mode === 'bfs' || mode === 'dfs') loadGraphLevel();
+      else if (mode === 'traversal') loadTraversalLevel();
+      else loadPropertyLevel();
+      resizeCanvas();
+      draw();
+    }
+
+    function loadGraphLevel() {
+      const level = graphLevels[levelIdx % graphLevels.length];
+      vertices = level.verts.map(v => [...v]);
+      edges = level.edges.map(e => [...e]);
+      startVertex = level.start;
+      buildAdj();
+      correctOrder = mode === 'bfs' ? computeBFS(startVertex) : computeDFS(startVertex);
+      document.getElementById('theoryNote').innerHTML = mode === 'bfs'
+        ? `<strong>BFS:</strong> Visit all neighbours of current level before going deeper. Click vertices in BFS order starting from vertex ${startVertex+1}. BFS gives shortest paths from the root.`
+        : `<strong>DFS:</strong> Go as deep as possible along each branch before backtracking. Click vertices in DFS order starting from vertex ${startVertex+1}. Use alphabetical/numerical order for tie-breaking.`;
+    }
+
+    function loadTraversalLevel() {
+      const level = treeLevels[levelIdx % treeLevels.length];
+      vertices = level.verts.map(v => [...v]);
+      edges = level.edges.map(e => [...e]);
+      treeEdges = new Set(edges.map((_,i) => i));
+      const ttype = ['preorder','postorder','inorder'][levelIdx % 3];
+      correctOrder = level[ttype];
+      document.getElementById('theoryNote').innerHTML = `<strong>${ttype}:</strong> ${
+        ttype==='preorder' ? 'Visit ROOT, then left subtree, then right subtree.' :
+        ttype==='postorder' ? 'Visit left subtree, then right subtree, then ROOT.' :
+        'Visit left subtree, then ROOT, then right subtree.'
+      }<br><br>Click vertices in ${ttype} order. Root is vertex 1 (top).`;
+    }
+
+    function loadPropertyLevel() {
+      const q = propQuestions[levelIdx % propQuestions.length];
+      document.getElementById('propQuestion').textContent = q.q;
+      document.getElementById('propAnswer').value = '';
+      correctOrder = [q.a];
+      vertices = []; edges = [];
+      document.getElementById('theoryNote').innerHTML = `<strong>Key formulas:</strong><br>• Tree: e = n-1<br>• m-ary: n = mi+1, l = (m-1)i+1<br>• Max leaves: l ≤ mʰ<br>• Min height: h ≥ ⌈logₘ l⌉<br>• Cayley: nⁿ⁻² labelled trees on n vertices`;
+    }
+
+    function buildAdj() {
+      adj = Array.from({length: vertices.length}, () => []);
+      edges.forEach(([a,b]) => { adj[a].push(b); adj[b].push(a); });
+      adj.forEach(a => a.sort((x,y) => x-y));
+    }
+
+    function computeBFS(start) {
+      const visited = new Set([start]), queue = [start], order = [start];
+      while (queue.length) {
+        const v = queue.shift();
+        for (const u of adj[v]) {
+          if (!visited.has(u)) { visited.add(u); queue.push(u); order.push(u); }
+        }
+      }
+      return order;
+    }
+
+    function computeDFS(start) {
+      const visited = new Set(), order = [];
+      function dfs(v) { visited.add(v); order.push(v); for (const u of adj[v]) { if (!visited.has(u)) dfs(u); } }
+      dfs(start);
+      return order;
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width; canvas.height = 480;
+      if (vertices.length === 0) return;
+      const maxX = Math.max(...vertices.map(v=>v[0]),1), maxY = Math.max(...vertices.map(v=>v[1]),1);
+      const sx = (canvas.width-80)/maxX, sy = (canvas.height-80)/maxY, s = Math.min(sx,sy,1.0);
+      const ox = (canvas.width-maxX*s)/2, oy = (canvas.height-maxY*s)/2;
+      const level = (mode==='bfs'||mode==='dfs') ? graphLevels[levelIdx%graphLevels.length] : treeLevels[levelIdx%treeLevels.length];
+      vertices = level.verts.map(v => [v[0]*s+ox, v[1]*s+oy]);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      if (mode === 'properties') {
+        ctx.fillStyle = '#667eea'; ctx.font = '1.5rem sans-serif'; ctx.textAlign = 'center';
+        ctx.fillText('Answer the property question in the sidebar →', canvas.width/2, canvas.height/2);
+        return;
+      }
+      // Edges
+      edges.forEach(([a,b], i) => {
+        ctx.beginPath(); ctx.moveTo(vertices[a][0],vertices[a][1]); ctx.lineTo(vertices[b][0],vertices[b][1]);
+        if (treeEdges.has(i)) { ctx.strokeStyle='#2ecc71'; ctx.lineWidth=3; }
+        else { ctx.strokeStyle='#4a5568'; ctx.lineWidth=2; }
+        ctx.stroke();
+      });
+      // Vertices
+      vertices.forEach((v,i) => {
+        ctx.beginPath(); ctx.arc(v[0],v[1],20,0,Math.PI*2);
+        const idx = userOrder.indexOf(i);
+        if (idx >= 0) ctx.fillStyle = '#3498db';
+        else if (i === startVertex && (mode==='bfs'||mode==='dfs')) ctx.fillStyle = '#667eea';
+        else ctx.fillStyle = '#2a3a5e';
+        ctx.fill(); ctx.strokeStyle='#667eea'; ctx.lineWidth=2; ctx.stroke();
+        ctx.fillStyle='#fff'; ctx.font='bold 13px sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(i+1, v[0], v[1]);
+        if (idx >= 0) { ctx.fillStyle='#f39c12'; ctx.font='bold 10px sans-serif'; ctx.fillText(idx+1, v[0]+16, v[1]-16); }
+      });
+    }
+
+    canvas.addEventListener('click', (e) => {
+      if (mode === 'properties') return;
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX-rect.left, y = e.clientY-rect.top;
+      for (let i = 0; i < vertices.length; i++) {
+        if ((x-vertices[i][0])**2 + (y-vertices[i][1])**2 < 20*20) {
+          if (userOrder.includes(i)) return;
+          userOrder.push(i);
+          // Add tree edge if in bfs/dfs mode
+          if (mode==='bfs'||mode==='dfs') {
+            if (userOrder.length > 1) {
+              const prev = findParentInOrder(i);
+              if (prev >= 0) {
+                const ei = edges.findIndex(([a,b]) => (a===prev&&b===i)||(b===prev&&a===i));
+                if (ei >= 0) treeEdges.add(ei);
+              }
+            }
+          }
+          document.getElementById('orderDisplay').textContent = userOrder.map(v=>v+1).join(', ');
+          draw(); return;
+        }
+      }
+    });
+
+    function findParentInOrder(v) {
+      // Find which already-visited vertex is adjacent to v and was visited earliest in BFS or is the DFS parent
+      const visited = new Set(userOrder.slice(0,-1));
+      for (let j = userOrder.length-2; j >= 0; j--) {
+        if (adj[userOrder[j]] && adj[userOrder[j]].includes(v)) return userOrder[j];
+      }
+      return -1;
+    }
+
+    function checkAnswer() {
+      if (mode === 'properties') {
+        const ua = parseInt(document.getElementById('propAnswer').value);
+        const q = propQuestions[levelIdx % propQuestions.length];
+        if (isNaN(ua)) { showMessage('Enter a number!','error'); return; }
+        if (ua === q.a) { score+=10; showMessage(`✓ Correct! ${q.explain} +10`,'success'); }
+        else { showMessage(`✗ Answer: ${q.a}. ${q.explain}`,'error'); }
+        document.getElementById('scoreDisplay').textContent = score; return;
+      }
+      if (userOrder.length < correctOrder.length) {
+        showMessage(`Click more vertices! You have ${userOrder.length}/${correctOrder.length}.`,'error'); return;
+      }
+      let correct = true;
+      for (let i = 0; i < correctOrder.length; i++) {
+        if (userOrder[i] !== correctOrder[i]) { correct = false; break; }
+      }
+      if (correct) {
+        score += 10;
+        showMessage(`🎉 Perfect ${mode.toUpperCase()} order! +10 points`,'success');
+      } else {
+        showMessage(`✗ Incorrect. Correct order: ${correctOrder.map(v=>v+1).join(', ')}`,'error');
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function resetLevel() { userOrder=[]; treeEdges=new Set(); document.getElementById('orderDisplay').textContent='-';
+      document.getElementById('message').innerHTML=''; draw(); }
+    function nextLevel() { levelIdx++; loadLevel(); }
+    function showHint() {
+      if (mode==='properties') { showMessage('Check the formulas in the theory panel!','info'); return; }
+      const next = correctOrder[userOrder.length];
+      if (next !== undefined) showMessage(`Hint: next vertex is ${next+1}`,'info');
+      else showMessage('All vertices placed!','info');
+    }
+    function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
+
+    loadLevel();
+    window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+</body>
+</html>

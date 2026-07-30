@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pumping Lemma Prover - COS3701</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .problem-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .problem-box h3 { color: #667eea; margin-bottom: 1rem; }
+    .word-display { font-family: monospace; font-size: 1.4rem; text-align: center; padding: 1rem;
+      background: #1a1a2e; border-radius: 8px; margin: 1rem 0; letter-spacing: 2px; }
+    .decompose-area { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .decompose-area h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .part-row { display: flex; gap: 0.5rem; align-items: center; margin: 0.4rem 0; }
+    .part-row label { width: 30px; font-weight: bold; font-family: monospace; }
+    .part-row input { flex: 1; background: #2a3a5e; border: 1px solid #4a5568; border-radius: 6px;
+      padding: 0.4rem 0.6rem; color: #fff; font-family: monospace; font-size: 0.95rem; }
+    .part-row input:focus { outline: none; border-color: #667eea; }
+    .pump-result { font-family: monospace; font-size: 1.1rem; text-align: center; padding: 0.75rem;
+      background: #1a1a2e; border-radius: 6px; margin: 0.75rem 0; color: #e74c3c; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .color-u { color: #888; } .color-v { color: #e74c3c; } .color-x { color: #3498db; }
+    .color-y { color: #2ecc71; } .color-z { color: #888; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header"><a href="/">&#8592;</a><h2>💪 Pumping Lemma Prover</h2></div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Prove a language is <strong>non-context-free</strong> using the pumping lemma. Choose a word, decompose it into
+      <span class="color-u">u</span><span class="color-v">v</span><span class="color-x">x</span><span class="color-y">y</span><span class="color-z">z</span>,
+      and show that pumping produces a word NOT in the language. You must show this for ALL decompositions!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="problem-box">
+          <h3 id="problemTitle">Prove non-context-free</h3>
+          <p id="problemText" style="color:#eee;font-size:1.05rem;line-height:1.7"></p>
+          <div class="word-display" id="wordDisplay"></div>
+        </div>
+        <div class="decompose-area">
+          <h4>Decompose w = <span class="color-u">u</span><span class="color-v">v</span><span class="color-x">x</span><span class="color-y">y</span><span class="color-z">z</span></h4>
+          <p style="color:#888;font-size:0.85rem;margin-bottom:0.5rem">Enter substrings (concatenation must equal w). Show that uv²xy²z is NOT in L.</p>
+          <div class="part-row"><label class="color-u">u:</label><input id="partU" oninput="updatePump()"></div>
+          <div class="part-row"><label class="color-v">v:</label><input id="partV" oninput="updatePump()"></div>
+          <div class="part-row"><label class="color-x">x:</label><input id="partX" oninput="updatePump()"></div>
+          <div class="part-row"><label class="color-y">y:</label><input id="partY" oninput="updatePump()"></div>
+          <div class="part-row"><label class="color-z">z:</label><input id="partZ" oninput="updatePump()"></div>
+          <div class="pump-result" id="pumpResult">uv²xy²z = ?</div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkDecomposition()">Check Contradiction</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+          <button class="btn btn-secondary" onclick="nextProblem()">Next Language</button>
+        </div>
+        <div id="message"></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="theory-box"><h4>Pumping Lemma (with length)</h4>
+          <p>If L is context-free, then for any word w with |w| > 2ᵖ, w can be decomposed as uvxyz where:<br><br>
+          1. |vxy| ≤ 2ᵖ<br>2. |x| > 0<br>3. |v| + |y| > 0<br><br>
+          and <strong>uv<sup>n</sup>xy<sup>n</sup>z ∈ L</strong> for all n ≥ 0.<br><br>
+          To prove L is NOT CF: find a word where EVERY valid decomposition produces a pumped word NOT in L.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, levelIdx = 0;
+    const problems = [
+      { lang: "L = {aⁿbⁿaⁿ | n ≥ 1}", word: "aaa bbb aaa", wordClean: "aaabbbaaa",
+        checkInL: w => { const m=w.match(/^(a+)(b+)(a+)$/); return m&&m[1].length===m[2].length&&m[2].length===m[3].length; },
+        hint: "vxy must lie within one or two of the three clumps. Pumping disrupts the balance aⁿ=bⁿ=aⁿ." },
+      { lang: "L = {aⁿbⁿcⁿ | n ≥ 1}", word: "aaa bbb ccc", wordClean: "aaabbbccc",
+        checkInL: w => { const m=w.match(/^(a+)(b+)(c+)$/); return m&&m[1].length===m[2].length&&m[2].length===m[3].length; },
+        hint: "vxy spans at most 2 of the 3 clumps. Pumping increases those but not the third → contradiction." },
+      { lang: "L = {ww | w ∈ {a,b}*}", word: "aab aab", wordClean: "aabaab",
+        checkInL: w => w.length%2===0 && w.slice(0,w.length/2)===w.slice(w.length/2),
+        hint: "Choose a word like aⁿbⁿaⁿbⁿ. Any vxy of bounded length can't maintain the ww structure." },
+      { lang: "L = {aⁿ | n is a perfect square}", word: "aaaaaaaaaa aaaaaaa", wordClean: "a".repeat(16),
+        checkInL: w => w.match(/^a+$/) && Number.isInteger(Math.sqrt(w.length)),
+        hint: "Take a word of length k². After pumping once: length k²+|v|+|y|. This must also be a perfect square — but consecutive squares are too far apart!" },
+    ];
+
+    function loadProblem() {
+      const p = problems[levelIdx % problems.length];
+      document.getElementById('problemTitle').textContent = `Prove: ${p.lang} is non-context-free`;
+      document.getElementById('problemText').innerHTML = `Language: <strong>${p.lang}</strong><br>Chosen word w (length > 2ᵖ):`;
+      document.getElementById('wordDisplay').textContent = p.wordClean;
+      ['partU','partV','partX','partY','partZ'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('pumpResult').textContent = 'uv²xy²z = ?';
+      document.getElementById('message').innerHTML = '';
+    }
+
+    function updatePump() {
+      const u=document.getElementById('partU').value, v=document.getElementById('partV').value;
+      const x=document.getElementById('partX').value, y=document.getElementById('partY').value;
+      const z=document.getElementById('partZ').value;
+      const pumped = u + v + v + x + y + y + z;
+      document.getElementById('pumpResult').textContent = `uv²xy²z = ${pumped || '?'}`;
+    }
+
+    function checkDecomposition() {
+      const p = problems[levelIdx % problems.length];
+      const u=document.getElementById('partU').value, v=document.getElementById('partV').value;
+      const x=document.getElementById('partX').value, y=document.getElementById('partY').value;
+      const z=document.getElementById('partZ').value;
+
+      // Check concatenation equals w
+      if (u+v+x+y+z !== p.wordClean) {
+        showMessage(`u+v+x+y+z = "${u+v+x+y+z}" but w = "${p.wordClean}". They must be equal!`,'error'); return;
+      }
+      // Check |v|+|y| > 0
+      if (v.length + y.length === 0) {
+        showMessage('|v| + |y| must be > 0 (otherwise pumping does nothing).','error'); return;
+      }
+      // Check pumped word is NOT in L
+      const pumped = u + v + v + x + y + y + z;
+      if (!p.checkInL(pumped)) {
+        score += 10;
+        document.getElementById('scoreDisplay').textContent = score;
+        let whyText = '';
+        if (p.wordClean.match(/^a+b+a+$/)) {
+          whyText = `<br><br><strong>Why this contradiction works:</strong> The key insight is that vxy (bounded length ≤ 2ᵖ) can only span 1 or 2 of the three clumps. Pumping v and y increases the count of letters in those clumps while leaving the third unchanged — breaking the balance aⁿ=bⁿ=aⁿ. This is why aⁿbⁿaⁿ requires "comparing three things" which a single stack (PDA) cannot do.`;
+        } else if (p.wordClean.match(/^a+b+c+$/)) {
+          whyText = `<br><br><strong>Why this works:</strong> vxy spans at most 2 adjacent clumps (since |vxy| ≤ 2ᵖ). Pumping increases those 2 clumps but the third is untouched → the three counts become unequal. A PDA can only compare 2 things at a time using its stack.`;
+        } else if (p.wordClean.match(/^a+$/)) {
+          whyText = `<br><br><strong>Why perfect squares fail:</strong> After pumping once, the new length is n² + |v| + |y|. Since 0 < |v|+|y| ≤ 2ᵖ and the gap between consecutive squares (n²) and ((n+1)²) is 2n+1, for large enough n this gap exceeds 2ᵖ, so the pumped length can't be a perfect square.`;
+        }
+        showMessage(`✓ Contradiction! uv²xy²z = "${pumped}" ∉ L.${whyText}<br><br><em>Remember: for a complete proof, you must show this works for ALL possible decompositions, not just one.</em> +10`,'success');
+      } else {
+        showMessage(`uv²xy²z = "${pumped}" is still in L! This decomposition doesn't give a contradiction.<br><br><strong>Why it failed:</strong> Your choice of v and y probably only affects one "freely variable" part of the word. Try a decomposition where v or y straddles a boundary, or where pumping disrupts a balance that defines the language.`,'error');
+      }
+    }
+
+    function showHint() { showMessage(problems[levelIdx%problems.length].hint,'info'); }
+    function nextProblem() { levelIdx++; loadProblem(); }
+    function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
+    loadProblem();
+  </script>
+</body>
+</html>

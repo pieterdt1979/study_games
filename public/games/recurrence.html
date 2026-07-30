@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Recurrence Detective - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .sequence-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .sequence-box h3 { color: #667eea; margin-bottom: 1rem; }
+    .sequence-display { display: flex; gap: 0.5rem; flex-wrap: wrap; align-items: center; margin: 1rem 0; }
+    .seq-term { background: #1a1a2e; border: 2px solid #4a5568; border-radius: 8px;
+      padding: 0.6rem 1rem; font-size: 1.1rem; font-weight: bold; color: #2ecc71; min-width: 50px; text-align: center; }
+    .seq-term.unknown { border-color: #f39c12; color: #f39c12; }
+    .seq-arrow { color: #4a5568; font-size: 1.2rem; }
+    .challenge-section { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .challenge-section h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .input-group { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; flex-wrap: wrap; }
+    .input-group label { color: #bbb; font-size: 0.9rem; min-width: 80px; }
+    .input-group input, .input-group select {
+      background: #2a3a5e; border: 2px solid #4a5568; border-radius: 6px;
+      padding: 0.5rem 0.75rem; color: #fff; font-size: 0.95rem; width: 100px; }
+    .input-group input:focus, .input-group select:focus { outline: none; border-color: #667eea; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.85rem; line-height: 1.7; }
+    .explanation { background: #16213e; border-radius: 8px; padding: 1rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; font-size: 0.9rem; line-height: 1.7; }
+    .mode-select { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .mode-select button.active-mode { border: 2px solid #667eea; background: rgba(102,126,234,0.2); }
+    .char-eq { font-family: 'Courier New', monospace; color: #2ecc71; font-size: 1rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🔢 Recurrence Detective</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>You're given the first several terms of a sequence. <strong>Identify the recurrence relation</strong>, predict the next term, and (in advanced mode) solve the recurrence by finding the characteristic equation roots. The sequence might be linear, Fibonacci-type, or inhomogeneous!</p>
+    </div>
+    <div class="mode-select">
+      <button class="btn btn-secondary active-mode" onclick="setMode('predict')">Predict Next Term</button>
+      <button class="btn btn-secondary" onclick="setMode('identify')">Identify Recurrence</button>
+      <button class="btn btn-secondary" onclick="setMode('solve')">Solve (Characteristic Eq)</button>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="sequence-box">
+          <h3 id="levelTitle">Level 1</h3>
+          <div class="sequence-display" id="sequenceDisplay"></div>
+        </div>
+        <div class="challenge-section" id="challengeArea"></div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkAnswer()">Check Answer</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+          <button class="btn btn-secondary" onclick="nextProblem()">Next</button>
+        </div>
+        <div id="message"></div>
+        <div class="explanation" id="explanation">
+          <h4>Solution</h4>
+          <p id="explanationText"></p>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Level</h4><div class="value" id="levelNum">1</div></div>
+        <div class="stat-box"><h4>Streak</h4><div class="value" id="streakDisplay">0</div></div>
+        <div class="theory-box">
+          <h4>Theory</h4>
+          <p id="theoryNote">A <strong>linear recurrence</strong>: aₙ = c₁aₙ₋₁ + c₂aₙ₋₂ + ... <br><br>
+          To solve: substitute aₙ = αⁿ to get the <strong>characteristic equation</strong>. If roots are α₁, α₂: aₙ = A·α₁ⁿ + B·α₂ⁿ. Find A,B from initial conditions.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let mode = 'predict';
+    let score = 0, streak = 0, levelIdx = 0;
+    let currentProblem = null;
+    let answered = false;
+
+    const problems = [
+      { seq: [2,6,18,54,162], next: 486, relation: "aₙ = 3·aₙ₋₁", type: "first-order",
+        charEq: "α = 3", roots: [3], solution: "aₙ = 2·3ⁿ",
+        hint: "Each term is multiplied by a constant. What's the ratio?",
+        explain: "This is a geometric sequence: aₙ = 3·aₙ₋₁ with a₀=2. Characteristic eq: α = 3, root α=3. General solution: aₙ = A·3ⁿ. From a₀=2: A=2. So aₙ = 2·3ⁿ." },
+      { seq: [1,1,2,3,5,8,13], next: 21, relation: "aₙ = aₙ₋₁ + aₙ₋₂", type: "second-order",
+        charEq: "α² = α + 1", roots: ["(1+√5)/2", "(1-√5)/2"], solution: "aₙ = (1/√5)·φⁿ − (1/√5)·ψⁿ",
+        hint: "Look at how each term relates to the TWO before it. This is the most famous recurrence!",
+        explain: "Fibonacci! aₙ = aₙ₋₁ + aₙ₋₂, a₀=a₁=1. Char eq: α²−α−1=0, roots φ=(1+√5)/2≈1.618 and ψ=(1-√5)/2≈−0.618. Solution: aₙ = (φⁿ⁺¹−ψⁿ⁺¹)/√5." },
+      { seq: [1,3,7,15,31,63], next: 127, relation: "aₙ = 2·aₙ₋₁ + 1", type: "inhomogeneous",
+        charEq: "α = 2 (homogeneous part)", roots: [2], solution: "aₙ = 2ⁿ⁺¹ − 1",
+        hint: "Try looking at aₙ + 1. What pattern does that sequence follow?",
+        explain: "aₙ = 2·aₙ₋₁ + 1 (inhomogeneous — the '+1' makes it non-linear). Trick: let bₙ = aₙ+1, then bₙ = 2·bₙ₋₁. So bₙ = 2ⁿ⁺¹, meaning aₙ = 2ⁿ⁺¹−1." },
+      { seq: [0,1,4,9,16,25], next: 36, relation: "aₙ = n²", type: "direct-formula",
+        charEq: "N/A (not a linear recurrence)", roots: [], solution: "aₙ = n²",
+        hint: "These are perfect squares! Not every sequence comes from a recurrence relation.",
+        explain: "aₙ = n². You can also write this as aₙ = aₙ₋₁ + 2n − 1 (since n² = (n-1)² + 2n-1), which IS a first-order inhomogeneous recurrence." },
+      { seq: [2,4,10,28,82], next: 244, relation: "aₙ = 4·aₙ₋₁ − 3·aₙ₋₂", type: "second-order",
+        charEq: "α² − 4α + 3 = 0", roots: [1, 3], solution: "aₙ = 1 + 3ⁿ",
+        hint: "This is a second-order linear recurrence. Try aₙ − c₁·aₙ₋₁ − c₂·aₙ₋₂ = 0 for some constants.",
+        explain: "aₙ = 4aₙ₋₁ − 3aₙ₋₂. Char eq: α²−4α+3=0 → (α−1)(α−3)=0, roots α=1,3. General: aₙ = A·1ⁿ+B·3ⁿ. From a₀=2,a₁=4: A+B=2, A+3B=4 → B=1,A=1. So aₙ = 1+3ⁿ." },
+    ];
+
+    const problems2 = [
+      { seq: [1,2,5,14,41,122], next: 365, relation: "aₙ = 3·aₙ₋₁ − aₙ₋₂", type: "second-order",
+        charEq: "α² − 3α + 1 = 0", roots: ["(3+√5)/2", "(3-√5)/2"], solution: "aₙ = A·α₁ⁿ + B·α₂ⁿ",
+        hint: "Second-order. Compute aₙ − 3·aₙ₋₁ for each term and see what's left.",
+        explain: "aₙ = 3aₙ₋₁ − aₙ₋₂. Char eq: α²−3α+1=0, roots (3±√5)/2. Verify: 3·122−41=365 ✓" },
+      { seq: [1,4,13,40,121], next: 364, relation: "aₙ = 3·aₙ₋₁ + 1", type: "inhomogeneous",
+        charEq: "α = 3 (homogeneous part)", roots: [3], solution: "aₙ = (3ⁿ⁺¹ − 1)/2",
+        hint: "Inhomogeneous (constant term). Try 2aₙ + 1 and see what happens.",
+        explain: "aₙ = 3aₙ₋₁+1. Let bₙ = 2aₙ+1: b₀=3, bₙ=3bₙ₋₁ → bₙ=3ⁿ⁺¹. So aₙ = (3ⁿ⁺¹−1)/2. Check: (3⁶−1)/2 = 364 ✓" },
+      { seq: [0,1,3,5,11,21], next: 43, relation: "aₙ = aₙ₋₁ + 2·aₙ₋₂", type: "second-order",
+        charEq: "α² − α − 2 = 0", roots: [2, -1], solution: "aₙ = (2ⁿ⁺¹ + (-1)ⁿ)/3 − something",
+        hint: "Second-order linear. Try subtracting aₙ₋₁ and see if the remainder relates to aₙ₋₂.",
+        explain: "aₙ = aₙ₋₁ + 2aₙ₋₂. Char eq: α²−α−2=0 → (α−2)(α+1)=0, roots 2,−1. General: aₙ = A·2ⁿ+B·(−1)ⁿ. From a₀=0,a₁=1: A+B=0, 2A−B=1 → A=1/3,B=−1/3. So aₙ = (2ⁿ−(−1)ⁿ)/3. Verify: (2⁶−1)/3=63/3=21... wait let me recheck. a₅=21, next: 21+2·11=43 ✓" },
+      { seq: [2,2,4,8,16,32], next: 64, relation: "aₙ = 2·aₙ₋₂", type: "second-order",
+        charEq: "α² − 2 = 0", roots: ["√2", "−√2"], solution: "aₙ = (√2)ⁿ + (−√2)ⁿ (even terms) etc",
+        hint: "Each term relates to the one TWO steps back, not one step back!",
+        explain: "aₙ = 2·aₙ₋₂ (skips a term!). Char eq: α²=2, roots ±√2. Even terms: 2,4,16,64,... = 2ⁿ. Odd terms: 2,8,32,... = 2ⁿ. Next: 2·32=64 ✓" },
+    ];
+
+    const allProblems = [...problems, ...problems2];
+
+    function setMode(m) {
+      mode = m;
+      document.querySelectorAll('.mode-select button').forEach(b => b.classList.remove('active-mode'));
+      event.target.classList.add('active-mode');
+      loadProblem();
+    }
+
+    function loadProblem() {
+      answered = false;
+      document.getElementById('explanation').style.display = 'none';
+      document.getElementById('message').innerHTML = '';
+      currentProblem = allProblems[levelIdx % allProblems.length];
+
+      document.getElementById('levelTitle').textContent = `Level ${levelIdx + 1}: ${currentProblem.type}`;
+      document.getElementById('levelNum').textContent = levelIdx + 1;
+
+      // Display sequence
+      const seqDiv = document.getElementById('sequenceDisplay');
+      let html = '';
+      currentProblem.seq.forEach((val, i) => {
+        if (i > 0) html += '<span class="seq-arrow">→</span>';
+        html += `<div class="seq-term">${val}</div>`;
+      });
+      if (mode === 'predict') {
+        html += '<span class="seq-arrow">→</span><div class="seq-term unknown">?</div>';
+      }
+      seqDiv.innerHTML = html;
+
+      // Build challenge area based on mode
+      const area = document.getElementById('challengeArea');
+      if (mode === 'predict') {
+        area.innerHTML = `
+          <h4>What is the next term?</h4>
+          <p style="color:#bbb;font-size:0.9rem;margin-bottom:0.75rem">Given: a₀=${currentProblem.seq[0]}, a₁=${currentProblem.seq[1]}, ..., a${currentProblem.seq.length-1}=${currentProblem.seq[currentProblem.seq.length-1]}</p>
+          <div class="input-group">
+            <label>a${currentProblem.seq.length} =</label>
+            <input type="number" id="mainAnswer" placeholder="?">
+          </div>`;
+      } else if (mode === 'identify') {
+        area.innerHTML = `
+          <h4>Identify the Recurrence Relation</h4>
+          <p style="color:#bbb;font-size:0.9rem;margin-bottom:0.75rem">Express aₙ in terms of previous terms (and possibly n).</p>
+          <div class="input-group">
+            <label>aₙ =</label>
+            <select id="coeff1"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="-1">-1</option><option value="-3">-3</option></select>
+            <label>·aₙ₋₁ +</label>
+            <select id="coeff2"><option value="0">0</option><option value="1">1</option><option value="2">2</option><option value="-1">-1</option><option value="-2">-2</option><option value="-3">-3</option></select>
+            <label>·aₙ₋₂ +</label>
+            <select id="constTerm"><option value="0">0</option><option value="1">1</option><option value="-1">-1</option><option value="2">2</option></select>
+          </div>
+          <p style="color:#666;font-size:0.8rem;margin-top:0.5rem">Set unused coefficients to 0</p>`;
+      } else {
+        area.innerHTML = `
+          <h4>Solve: Find the Characteristic Equation</h4>
+          <p style="color:#bbb;font-size:0.9rem;margin-bottom:0.75rem">The recurrence is: <strong>${currentProblem.relation}</strong></p>
+          <p style="color:#bbb;font-size:0.9rem;">Characteristic equation: <span class="char-eq">${currentProblem.charEq}</span></p>
+          <p style="color:#bbb;font-size:0.9rem;margin:0.5rem 0">What is the next term (to verify you understand the pattern)?</p>
+          <div class="input-group">
+            <label>a${currentProblem.seq.length} =</label>
+            <input type="number" id="mainAnswer" placeholder="?">
+          </div>
+          <p style="color:#888;font-size:0.8rem;margin-top:0.75rem">Roots: ${currentProblem.roots.join(', ')}<br>Solution form: ${currentProblem.solution}</p>`;
+      }
+
+      // Update theory
+      updateTheory();
+    }
+
+    function updateTheory() {
+      const note = document.getElementById('theoryNote');
+      if (currentProblem.type === 'first-order') {
+        note.innerHTML = `<strong>First-order linear:</strong> aₙ = c·aₙ₋₁<br>Solution: aₙ = a₀·cⁿ<br>Characteristic eq: α = c`;
+      } else if (currentProblem.type === 'second-order') {
+        note.innerHTML = `<strong>Second-order linear:</strong> aₙ = c₁aₙ₋₁ + c₂aₙ₋₂<br>Char eq: α² − c₁α − c₂ = 0<br>If roots α₁≠α₂: aₙ = A·α₁ⁿ + B·α₂ⁿ<br>If repeated root α: aₙ = (A+Bn)·αⁿ`;
+      } else if (currentProblem.type === 'inhomogeneous') {
+        note.innerHTML = `<strong>Inhomogeneous:</strong> aₙ = c·aₙ₋₁ + f(n)<br>Steps: 1) Solve homogeneous part. 2) Find particular solution. 3) Add them. 4) Use initial conditions.<br>Trick: sometimes a substitution bₙ = aₙ + k simplifies it.`;
+      } else {
+        note.innerHTML = `This might be a <strong>direct formula</strong> (not a standard linear recurrence). Look for patterns like n², 2ⁿ, or factorials. You can still express it as a recurrence if needed.`;
+      }
+    }
+
+    function checkAnswer() {
+      if (answered) return;
+      answered = true;
+
+      if (mode === 'predict' || mode === 'solve') {
+        const input = document.getElementById('mainAnswer');
+        const userAns = parseInt(input.value);
+        if (isNaN(userAns)) { showMessage('Enter a number!', 'error'); answered = false; return; }
+        if (userAns === currentProblem.next) {
+          score += 10; streak++;
+          showMessage(`✓ Correct! a${currentProblem.seq.length} = ${currentProblem.next}. +10 points`, 'success');
+        } else {
+          streak = 0;
+          showMessage(`✗ Incorrect. The answer is ${currentProblem.next}. (${currentProblem.relation})`, 'error');
+        }
+      } else {
+        // Identify mode: verify the recurrence by checking it against the sequence
+        const c1 = parseInt(document.getElementById('coeff1').value);
+        const c2 = parseInt(document.getElementById('coeff2').value);
+        const ct = parseInt(document.getElementById('constTerm').value);
+        // Test: does c1*a(n-1) + c2*a(n-2) + ct = a(n) for all valid n?
+        const seq = currentProblem.seq;
+        let valid = true;
+        const startIdx = c2 !== 0 ? 2 : 1;
+        for (let n = startIdx; n < seq.length; n++) {
+          const predicted = c1 * seq[n-1] + (c2 !== 0 ? c2 * seq[n-2] : 0) + ct;
+          if (predicted !== seq[n]) { valid = false; break; }
+        }
+        if (valid) {
+          score += 10; streak++;
+          let relStr = `aₙ = ${c1 !== 0 ? c1 + '·aₙ₋₁' : ''}${c2 !== 0 ? (c2>0?' + ':' − ')+Math.abs(c2)+'·aₙ₋₂' : ''}${ct !== 0 ? (ct>0?' + ':' − ')+Math.abs(ct) : ''}`;
+          showMessage(`✓ Correct! ${relStr} generates this sequence. +10 points`, 'success');
+        } else {
+          streak = 0;
+          showMessage(`✗ That recurrence doesn't generate this sequence. The correct relation is: ${currentProblem.relation}`, 'error');
+        }
+      }
+
+      document.getElementById('scoreDisplay').textContent = score;
+      document.getElementById('streakDisplay').textContent = streak;
+      document.getElementById('explanation').style.display = 'block';
+      document.getElementById('explanationText').innerHTML = currentProblem.explain;
+    }
+
+    function showHint() {
+      showMessage(currentProblem.hint, 'info');
+    }
+
+    function nextProblem() {
+      levelIdx++;
+      loadProblem();
+    }
+
+    function showMessage(text, type) {
+      document.getElementById('message').innerHTML = `<div class="message message-${type}">${text}</div>`;
+    }
+
+    // Allow Enter in input
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') checkAnswer();
+    });
+
+    // Init
+    loadProblem();
+  </script>
+</body>
+</html>

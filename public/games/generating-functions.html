@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Generating Function Builder - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .problem-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .problem-box h3 { color: #667eea; margin-bottom: 1rem; }
+    .problem-box .question { font-size: 1.05rem; line-height: 1.8; color: #eee; }
+    .gf-builder { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .gf-builder h4 { color: #667eea; margin-bottom: 1rem; }
+    .factor-row { display: flex; gap: 0.5rem; align-items: center; margin: 0.5rem 0; flex-wrap: wrap; }
+    .factor-row label { color: #bbb; font-size: 0.9rem; min-width: 90px; }
+    .factor-row select { background: #2a3a5e; border: 1px solid #4a5568; border-radius: 6px;
+      padding: 0.4rem; color: #fff; font-size: 0.85rem; }
+    .gf-display { font-family: 'Courier New', monospace; font-size: 1.1rem; color: #2ecc71;
+      background: #1a1a2e; border-radius: 8px; padding: 1rem; margin: 1rem 0; min-height: 2.5rem;
+      display: flex; align-items: center; justify-content: center; text-align: center; }
+    .coeff-area { background: #16213e; border-radius: 8px; padding: 1.5rem; }
+    .coeff-area h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .coeff-input { display: flex; gap: 0.75rem; align-items: center; }
+    .coeff-input input { background: #2a3a5e; border: 2px solid #4a5568; border-radius: 6px;
+      padding: 0.5rem 0.75rem; color: #fff; font-size: 1.1rem; width: 120px; }
+    .coeff-input input:focus { outline: none; border-color: #667eea; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .explanation { background: #16213e; border-radius: 8px; padding: 1rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; font-size: 0.9rem; line-height: 1.7; }
+    code { background: #1a1a2e; padding: 0.1rem 0.4rem; border-radius: 3px; color: #2ecc71; font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>📐 Generating Function Builder</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Given a counting problem, identify the correct <strong>generating function</strong> and then find the
+      <strong>coefficient of xʳ</strong> which gives the answer. Build the GF by selecting factors, then compute the coefficient!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="problem-box">
+          <h3 id="problemTitle">Problem 1</h3>
+          <div class="question" id="problemText"></div>
+        </div>
+        <div class="gf-builder">
+          <h4>Your Generating Function</h4>
+          <div id="builderArea"></div>
+          <div class="gf-display" id="gfDisplay">-</div>
+        </div>
+        <div class="coeff-area">
+          <h4 id="coeffQuestion">Find the coefficient of x⁴:</h4>
+          <div class="coeff-input">
+            <span style="color:#bbb">Answer:</span>
+            <input type="number" id="coeffAnswer" placeholder="?">
+          </div>
+        </div>
+        <div class="controls" style="margin-top:1rem">
+          <button class="btn btn-primary" onclick="checkAnswer()">Check Answer</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+          <button class="btn btn-secondary" onclick="nextProblem()">Next Problem</button>
+        </div>
+        <div id="message"></div>
+        <div class="explanation" id="explanation">
+          <h4>Solution</h4>
+          <p id="explanationText"></p>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Level</h4><div class="value" id="levelDisplay">1</div></div>
+        <div class="theory-box">
+          <h4>Key Identities</h4>
+          <p id="theoryNote">
+            <code>1/(1-x) = 1+x+x²+...</code><br>
+            <code>1/(1-x)ⁿ = Σ C(r+n-1,r)xʳ</code><br>
+            <code>(1+x)ⁿ = Σ C(n,k)xᵏ</code><br>
+            <code>1/(1-xᵐ) = 1+xᵐ+x²ᵐ+...</code><br><br>
+            The coefficient of xʳ in f(x)g(x) uses the <strong>convolution</strong>: Σ aₖbᵣ₋ₖ
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, levelIdx = 0, currentProblem = null;
+
+    function C(n, r) {
+      if (r < 0 || r > n) return 0;
+      if (r === 0 || r === n) return 1;
+      let res = 1;
+      for (let i = 0; i < Math.min(r, n-r); i++) { res = res * (n - i) / (i + 1); }
+      return Math.round(res);
+    }
+
+    const problems = [
+      { title: "Selections with Repetition",
+        text: "How many ways can you select <strong>5 objects</strong> from <strong>3 types</strong> (unlimited supply of each)?",
+        r: 5, answer: C(5+3-1, 5),
+        gf: "1/(1-x)³", gfFactors: ["1/(1-x)", "1/(1-x)", "1/(1-x)"],
+        hint: "Each type contributes factor (1+x+x²+...) = 1/(1-x). Three types → [1/(1-x)]³.",
+        explain: "GF = [1/(1-x)]³. Coefficient of x⁵ in 1/(1-x)³ = C(5+3-1, 5) = C(7,5) = 21. This is the selections-with-repetition formula: C(n+r-1, r) with n=3, r=5."
+      },
+      { title: "Integer Solutions",
+        text: "How many non-negative integer solutions does <strong>e₁ + e₂ + e₃ + e₄ = 6</strong> have?",
+        r: 6, answer: C(6+4-1, 6),
+        gf: "1/(1-x)⁴", gfFactors: ["1/(1-x)", "1/(1-x)", "1/(1-x)", "1/(1-x)"],
+        hint: "Each variable eᵢ ≥ 0 contributes (1+x+x²+...) = 1/(1-x). Four variables → [1/(1-x)]⁴.",
+        explain: "GF = [1/(1-x)]⁴. Coefficient of x⁶ = C(6+4-1, 6) = C(9,6) = 84. Each variable contributes the factor 1/(1-x) since it can take any non-negative integer value."
+      },
+      { title: "Constrained Selections",
+        text: "Select <strong>4 items</strong> from 2 types where you must take <strong>at most 3</strong> of each type. How many ways?",
+        r: 4, answer: 3,
+        gf: "(1+x+x²+x³)²", gfFactors: ["(1+x+x²+x³)", "(1+x+x²+x³)"],
+        hint: "Each type: 0 to 3 items → factor (1+x+x²+x³). Two types → square it. Find coeff of x⁴.",
+        explain: "(1+x+x²+x³)² — expand and find x⁴ coefficient. The pairs (e₁,e₂) with e₁+e₂=4 and 0≤eᵢ≤3 are: (1,3),(2,2),(3,1). So answer = 3."
+      },
+      { title: "Coin Change",
+        text: "How many ways to make change for <strong>8 cents</strong> using pennies (1¢) and nickels (5¢)?",
+        r: 8, answer: 2,
+        gf: "1/(1-x) · 1/(1-x⁵)", gfFactors: ["1/(1-x)", "1/(1-x⁵)"],
+        hint: "Pennies: any number → 1/(1-x). Nickels: any number of 5's → 1/(1-x⁵). Find [x⁸].",
+        explain: "GF = 1/((1-x)(1-x⁵)). For x⁸: can use 0 nickels (8 pennies) or 1 nickel (3 pennies). That's 2 ways. The coefficient counts partitions of 8 into parts of size 1 and 5."
+      },
+      { title: "Dice Rolling",
+        text: "How many ways can <strong>2 dice</strong> sum to <strong>7</strong>? (Each die shows 1-6)",
+        r: 7, answer: 6,
+        gf: "(x+x²+x³+x⁴+x⁵+x⁶)²", gfFactors: ["(x+x²+...+x⁶)", "(x+x²+...+x⁶)"],
+        hint: "Each die contributes (x+x²+x³+x⁴+x⁵+x⁶) = x(1+x+...+x⁵). Find coeff of x⁷.",
+        explain: "GF = (x+x²+...+x⁶)². Coeff of x⁷: pairs (a,b) with a+b=7, 1≤a,b≤6: (1,6)(2,5)(3,4)(4,3)(5,2)(6,1) = 6."
+      },
+      { title: "Distributing Identical Objects",
+        text: "Distribute <strong>10 identical cookies</strong> to <strong>3 children</strong> where each child gets at least 1.",
+        r: 10, answer: C(7+3-1, 7),
+        gf: "x³/(1-x)³ = x³·[1/(1-x)]³", gfFactors: ["x/(1-x)", "x/(1-x)", "x/(1-x)"],
+        hint: "Each child gets ≥1 → factor x(1+x+x²+...) = x/(1-x). Or substitute eᵢ'=eᵢ-1 to reduce to e₁'+e₂'+e₃'=7, eᵢ'≥0.",
+        explain: "With eᵢ≥1: GF = [x/(1-x)]³ = x³/(1-x)³. Coeff of x¹⁰ in x³/(1-x)³ = coeff of x⁷ in 1/(1-x)³ = C(7+2,7) = C(9,7) = 36."
+      },
+      { title: "Binary Strings",
+        text: "How many binary strings of length <strong>6</strong> have exactly <strong>2 zeros</strong>?",
+        r: 6, answer: C(6,2),
+        gf: "(1+x)⁶ [coeff of x² gives strings with 2 zeros]", gfFactors: ["(1+x)⁶"],
+        hint: "Model: choose which 2 of 6 positions get 0. GF for 'choose k zeros from n positions' is (1+x)ⁿ.",
+        explain: "GF = (1+x)⁶. Coeff of x² = C(6,2) = 15. Each position is either 0 (contributes x) or 1 (contributes 1). The binomial theorem gives the answer directly."
+      },
+      { title: "Partitions into 1s and 2s",
+        text: "How many ways to write <strong>6</strong> as a sum of 1s and 2s (order doesn't matter)?",
+        r: 6, answer: 4,
+        gf: "1/((1-x)(1-x²))", gfFactors: ["1/(1-x)", "1/(1-x²)"],
+        hint: "Part of size 1: any count → 1/(1-x). Part of size 2: any count → 1/(1-x²). Find [x⁶].",
+        explain: "Partitions of 6 into parts 1,2: 6=1+1+1+1+1+1 = 2+1+1+1+1 = 2+2+1+1 = 2+2+2. That's 4. GF = 1/((1-x)(1-x²)), coeff of x⁶ = 4."
+      },
+    ];
+
+    function loadProblem() {
+      currentProblem = problems[levelIdx % problems.length];
+      document.getElementById('problemTitle').textContent = `Problem ${levelIdx+1}: ${currentProblem.title}`;
+      document.getElementById('problemText').innerHTML = currentProblem.text;
+      document.getElementById('coeffQuestion').textContent = `Find the coefficient of x${superscript(currentProblem.r)}:`;
+      document.getElementById('coeffAnswer').value = '';
+      document.getElementById('levelDisplay').textContent = levelIdx + 1;
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('explanation').style.display = 'none';
+
+      // Show GF
+      document.getElementById('gfDisplay').innerHTML = `g(x) = ${currentProblem.gf}`;
+
+      // Builder area shows the factors
+      let html = '<p style="color:#aaa;font-size:0.85rem;margin-bottom:0.5rem">This GF is built from these factors:</p>';
+      currentProblem.gfFactors.forEach((f, i) => {
+        html += `<div class="factor-row"><label>Factor ${i+1}:</label><span style="color:#2ecc71;font-family:monospace">${f}</span></div>`;
+      });
+      html += `<p style="color:#888;font-size:0.8rem;margin-top:0.75rem">Each factor corresponds to one variable/type/container in the problem.</p>`;
+      document.getElementById('builderArea').innerHTML = html;
+    }
+
+    function superscript(n) {
+      const sup = {'0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹'};
+      return String(n).split('').map(c => sup[c]||c).join('');
+    }
+
+    function checkAnswer() {
+      const ua = parseInt(document.getElementById('coeffAnswer').value);
+      if (isNaN(ua)) { showMessage('Enter a number!','error'); return; }
+      if (ua === currentProblem.answer) {
+        score += 10;
+        showMessage(`✓ Correct! The coefficient of x${superscript(currentProblem.r)} is ${currentProblem.answer}. +10 points`, 'success');
+      } else {
+        showMessage(`✗ Incorrect. The answer is ${currentProblem.answer}.`, 'error');
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+      document.getElementById('explanation').style.display = 'block';
+      document.getElementById('explanationText').innerHTML = currentProblem.explain;
+    }
+
+    function showHint() { showMessage(currentProblem.hint, 'info'); }
+    function nextProblem() { levelIdx++; loadProblem(); }
+    function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
+
+    document.getElementById('coeffAnswer').addEventListener('keydown', e => { if (e.key==='Enter') checkAnswer(); });
+    loadProblem();
+  </script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CNF Converter - COS3701</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .grammar-box { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .grammar-box h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .production { font-family: monospace; font-size: 0.95rem; color: #2ecc71; padding: 0.2rem 0; }
+    .step-box { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .step-box h4 { color: #f39c12; margin-bottom: 0.75rem; }
+    .step-box p { color: #bbb; font-size: 0.9rem; line-height: 1.7; margin-bottom: 0.75rem; }
+    .answer-area { margin: 1rem 0; }
+    .answer-area textarea { width: 100%; min-height: 100px; background: #1a1a2e; border: 2px solid #4a5568;
+      border-radius: 8px; padding: 0.75rem; color: #fff; font-family: monospace; font-size: 0.9rem; resize: vertical; }
+    .answer-area textarea:focus { outline: none; border-color: #667eea; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .step-indicator { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .step-dot { width: 32px; height: 32px; border-radius: 50%; background: #2a3a5e; display: flex;
+      align-items: center; justify-content: center; font-size: 0.8rem; color: #888; font-weight: bold; }
+    .step-dot.active { background: #667eea; color: #fff; }
+    .step-dot.done { background: #2ecc71; color: #fff; }
+    .solution-box { background: #16213e; border-radius: 8px; padding: 1rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .solution-box h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .solution-box pre { color: #bbb; font-size: 0.85rem; line-height: 1.6; white-space: pre-wrap; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🔧 CNF Converter</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Convert a CFG to <strong>Chomsky Normal Form</strong> step by step. Each step builds on the previous.
+      The three steps (in order): <strong>1.</strong> Eliminate Λ-productions, <strong>2.</strong> Eliminate unit productions,
+      <strong>3.</strong> Rewrite in CNF form (A→BC or A→a).</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="step-indicator" id="stepIndicator"></div>
+        <div class="grammar-box">
+          <h4 id="grammarTitle">Original Grammar</h4>
+          <div id="grammarDisplay"></div>
+        </div>
+        <div class="step-box">
+          <h4 id="stepTitle">Step 1: Eliminate Λ-productions</h4>
+          <p id="stepInstructions"></p>
+          <div class="answer-area">
+            <textarea id="answerInput" placeholder="Enter the grammar after this step..."></textarea>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkStep()">Check Step</button>
+          <button class="btn btn-secondary" onclick="showSolution()">Show Solution</button>
+          <button class="btn btn-secondary" onclick="nextProblem()">Next Grammar</button>
+        </div>
+        <div id="message"></div>
+        <div class="solution-box" id="solutionBox">
+          <h4>Solution</h4>
+          <pre id="solutionText"></pre>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Current Step</h4><div class="value" id="currentStep">1/3</div></div>
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="theory-box">
+          <h4>CNF Rules</h4>
+          <p id="theoryNote">
+            <strong>CNF form:</strong> Every production must be either:<br>
+            • A → BC (two nonterminals)<br>
+            • A → a (one terminal)<br><br>
+            <strong>Steps:</strong><br>
+            1. Find nullable NTs, add replacement productions, remove Λ-prods<br>
+            2. Remove unit prods (A→B), replace with B's productions<br>
+            3. Introduce new NTs for terminals in mixed prods, split long RHS
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, levelIdx = 0, currentStepNum = 0;
+    const problems = [
+      { name: "Grammar 1",
+        original: "S → aSb | AB\nA → aA | Λ\nB → bB | Λ",
+        steps: [
+          { title: "Step 1: Eliminate Λ-productions",
+            instructions: "Nullable: A, B, S. Add new productions by replacing nullables with Λ in all combinations. Remove Λ-productions.",
+            solution: "S → aSb | ab | AB | A | B\nA → aA | a\nB → bB | b" },
+          { title: "Step 2: Eliminate unit productions",
+            instructions: "Unit productions: S→A, S→B. Replace with A's and B's non-unit productions.",
+            solution: "S → aSb | ab | AB | aA | a | bB | b\nA → aA | a\nB → bB | b" },
+          { title: "Step 3: Rewrite in CNF",
+            instructions: "Replace terminals in mixed productions with new NTs (P→a, Q→b). Split productions with >2 symbols on RHS.",
+            solution: "S → PR₁ | PQ | AB | PA | a | QB | b\nR₁ → SQ\nA → PA | a\nB → QB | b\nP → a\nQ → b" }
+        ]},
+      { name: "Grammar 2",
+        original: "S → XaY | b\nX → aY | Λ\nY → X | bY | a",
+        steps: [
+          { title: "Step 1: Eliminate Λ-productions",
+            instructions: "Nullable: X, Y (since Y→X→Λ). Add replacement productions for each nullable combination.",
+            solution: "S → XaY | aY | Xa | a | b\nX → aY | a\nY → X | bY | a | b" },
+          { title: "Step 2: Eliminate unit productions",
+            instructions: "Unit production: Y→X. Replace with X's productions.",
+            solution: "S → XaY | aY | Xa | a | b\nX → aY | a\nY → bY | aY | a | b" },
+          { title: "Step 3: Rewrite in CNF",
+            instructions: "Add A→a, B→b. Replace terminals in mixed prods. Split S→XaY into S→XR₁, R₁→AY.",
+            solution: "S → XR₁ | AY | XA | a | b\nR₁ → AY\nX → AY | a\nY → BY | AY | a | b\nA → a\nB → b" }
+        ]}
+    ];
+
+    function loadProblem() {
+      currentStepNum = 0;
+      const p = problems[levelIdx % problems.length];
+      document.getElementById('grammarTitle').textContent = p.name + ' — Original';
+      document.getElementById('grammarDisplay').innerHTML = p.original.split('\n').map(l=>`<div class="production">${l}</div>`).join('');
+      loadStep();
+      updateIndicator();
+    }
+
+    function loadStep() {
+      const p = problems[levelIdx % problems.length];
+      const step = p.steps[currentStepNum];
+      document.getElementById('stepTitle').textContent = step.title;
+      document.getElementById('stepInstructions').textContent = step.instructions;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('currentStep').textContent = `${currentStepNum+1}/3`;
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('solutionBox').style.display = 'none';
+      updateIndicator();
+    }
+
+    function updateIndicator() {
+      const ind = document.getElementById('stepIndicator');
+      ind.innerHTML = [1,2,3].map(i => {
+        const cls = i-1 < currentStepNum ? 'done' : i-1 === currentStepNum ? 'active' : '';
+        return `<div class="step-dot ${cls}">${i}</div>`;
+      }).join('');
+    }
+
+    function checkStep() {
+      const p = problems[levelIdx % problems.length];
+      const step = p.steps[currentStepNum];
+      const userAnswer = document.getElementById('answerInput').value.trim();
+      if (!userAnswer) { showMessage('Enter your answer!','error'); return; }
+      // Simplified check: compare normalized
+      const normalize = s => s.replace(/\s+/g,' ').replace(/\s*\|\s*/g,'|').replace(/\s*→\s*/g,'→').replace(/\s*->\s*/g,'→').toLowerCase();
+      if (normalize(userAnswer) === normalize(step.solution)) {
+        score += 10;
+        document.getElementById('scoreDisplay').textContent = score;
+        showMessage(`✓ Correct! Step ${currentStepNum+1} complete. +10 points`,'success');
+        if (currentStepNum < 2) { setTimeout(() => { currentStepNum++; loadStep(); }, 1500); }
+        else { showMessage(`🎉 CNF conversion complete! All 3 steps done. +10 points`,'success'); }
+      } else {
+        showMessage(`Not quite. Check the solution and compare. (Formatting: use → or ->, | for alternatives, one NT per line)`,'error');
+      }
+    }
+
+    function showSolution() {
+      const p = problems[levelIdx % problems.length];
+      const step = p.steps[currentStepNum];
+      document.getElementById('solutionBox').style.display = 'block';
+      document.getElementById('solutionText').textContent = step.solution;
+    }
+
+    function nextProblem() { levelIdx++; loadProblem(); }
+    function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
+
+    loadProblem();
+  </script>
+</body>
+</html>

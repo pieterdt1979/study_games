@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CFG Derivation Simulator - COS3701</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .grammar-box { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .grammar-box h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .production { font-family: 'Courier New', monospace; font-size: 1rem; color: #2ecc71;
+      padding: 0.3rem 0; line-height: 1.6; }
+    .derivation-area { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .derivation-area h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .working-string { font-family: 'Courier New', monospace; font-size: 1.3rem; color: #eee;
+      background: #1a1a2e; border-radius: 8px; padding: 1rem; margin: 0.75rem 0; min-height: 2rem;
+      display: flex; flex-wrap: wrap; gap: 2px; align-items: center; }
+    .ws-char { padding: 0.2rem 0.4rem; border-radius: 4px; cursor: default; }
+    .ws-char.nonterminal { color: #f39c12; cursor: pointer; border: 1px solid transparent; }
+    .ws-char.nonterminal:hover { border-color: #f39c12; background: rgba(243,156,18,0.1); }
+    .ws-char.nonterminal.selected { background: rgba(243,156,18,0.25); border-color: #f39c12; }
+    .ws-char.terminal { color: #2ecc71; }
+    .replace-options { display: flex; gap: 0.5rem; flex-wrap: wrap; margin: 0.75rem 0; }
+    .replace-btn { background: #1a1a2e; border: 1px solid #4a5568; border-radius: 6px;
+      padding: 0.5rem 1rem; color: #eee; cursor: pointer; font-family: monospace; font-size: 0.95rem; }
+    .replace-btn:hover { border-color: #667eea; background: rgba(102,126,234,0.1); }
+    .derivation-history { font-family: monospace; font-size: 0.85rem; color: #bbb;
+      max-height: 200px; overflow-y: auto; line-height: 1.8; }
+    .derivation-history .step { padding: 0.2rem 0.4rem; border-radius: 4px; }
+    .derivation-history .step:last-child { background: rgba(46,204,113,0.1); color: #2ecc71; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .word-display { font-family: monospace; font-size: 1.1rem; color: #2ecc71; margin: 0.5rem 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🌿 CFG Derivation Simulator</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Click a <strong style="color:#f39c12">nonterminal</strong> in the working string, then choose a production to apply.
+      Derive a word (string of terminals only). Try to derive the target word, or explore freely!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="grammar-box">
+          <h4 id="grammarTitle">Grammar 1</h4>
+          <div id="productionList"></div>
+        </div>
+        <div class="derivation-area">
+          <h4>Working String <span style="font-size:0.8rem;color:#888">(click a nonterminal to expand)</span></h4>
+          <div class="working-string" id="workingString"></div>
+          <div class="replace-options" id="replaceOptions"></div>
+          <h4 style="margin-top:1rem">Derivation History</h4>
+          <div class="derivation-history" id="derivationHistory"></div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-secondary" onclick="resetDerivation()">Reset</button>
+          <button class="btn btn-secondary" onclick="nextGrammar()">Next Grammar</button>
+          <button class="btn btn-secondary" onclick="undoStep()">Undo</button>
+        </div>
+        <div id="message"></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Steps</h4><div class="value" id="stepsDisplay">0</div></div>
+        <div class="stat-box"><h4>Target Word</h4>
+          <div class="word-display" id="targetWord">-</div>
+          <p style="color:#888;font-size:0.8rem">Try to derive this word!</p></div>
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="theory-box">
+          <h4>Theory</h4>
+          <p id="theoryNote">A <strong>CFG</strong> consists of terminals (a,b), nonterminals (S,A,B...), and productions.
+          Start with S, replace nonterminals using productions until only terminals remain.
+          The result is a <strong>word</strong> in the language.<br><br>
+          A <strong>leftmost derivation</strong> always expands the leftmost nonterminal first.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, levelIdx = 0;
+    let workingStr = []; // array of {char, isNT}
+    let selectedIdx = -1;
+    let history = [];
+    let currentGrammar = null;
+
+    const grammars = [
+      { name: "Simple: aⁿbⁿ", productions: { S: ['aSb', 'ab'] },
+        target: 'aaabbb', note: "This grammar generates {aⁿbⁿ | n≥1}. It's context-free but NOT regular!<br><br><strong>Why not regular?</strong> An FA has finite memory (fixed states) and can't count an unbounded number of a's to match with b's. A PDA can: push a's, then pop one per b.<br><br><strong>Why the recursion works:</strong> S→aSb wraps each recursive call with an a...b pair, building up matched pairs from inside out." },
+      { name: "EVEN-EVEN", productions: { S: ['aB', 'bA', ''], A: ['aS', 'bAA'], B: ['bS', 'aBB'] },
+        target: 'aabb', note: "EVEN-EVEN: all words with an even number of a's AND an even number of b's.<br><br><strong>Key insight:</strong> S generates words with even a's and even b's. A generates words with even a's, odd b's. B generates words with odd a's, even b's. Each production maintains this invariant." },
+      { name: "Palindromes", productions: { S: ['aSa', 'bSb', 'a', 'b', ''] },
+        target: 'abba', note: "Generates all palindromes over {a,b}.<br><br><strong>Why CF but not regular?</strong> To check if a word is a palindrome, you need to 'remember' the first half and compare it to the reversed second half. A PDA does this with its stack. But a DPDA can't — it doesn't know where the middle is! PALINDROME needs nondeterminism (guess the middle)." },
+      { name: "Balanced Parens", productions: { S: ['SS', '(S)', '()'] },
+        target: '(()())', note: "Balanced parentheses — the classic CFL.<br><br><strong>Why this is important:</strong> Every programming language uses balanced delimiters. This is WHY compilers need CFGs/PDAs rather than just regular expressions. The key: nesting depth is unbounded, requiring a stack to track." },
+      { name: "Ambiguous Grammar", productions: { S: ['aSb', 'SS', ''] },
+        target: 'aabb', note: "This grammar is <strong>AMBIGUOUS</strong>: 'aabb' has TWO derivation trees!<br><br><strong>Tree 1:</strong> S → aSb → aaSbb → aabb<br><strong>Tree 2:</strong> S → SS → aSbS → aaSbbS → aabb<br><br><strong>Why ambiguity matters:</strong> If a compiler finds two parse trees for one statement, it can't determine the meaning. Programming language grammars MUST be unambiguous." },
+      { name: "Expression Grammar", productions: { E: ['E+T', 'T'], T: ['T*F', 'F'], F: ['(E)', 'a', 'b'] },
+        start: 'E', target: 'a+b*a', note: "Arithmetic expressions with operator precedence.<br><br><strong>Why this is unambiguous:</strong> By making T (terms) handle *, and E (expressions) handle +, we force * to bind tighter (deeper in the tree). The derivation tree for 'a+b*a' correctly groups as a+(b*a), not (a+b)*a.<br><br><strong>This is how compilers work:</strong> Grammar structure encodes precedence!" },
+    ];
+
+    function loadGrammar() {
+      currentGrammar = grammars[levelIdx % grammars.length];
+      document.getElementById('grammarTitle').textContent = `Grammar ${levelIdx+1}: ${currentGrammar.name}`;
+      document.getElementById('targetWord').textContent = currentGrammar.target;
+      document.getElementById('theoryNote').innerHTML = currentGrammar.note;
+
+      // Display productions
+      const list = document.getElementById('productionList');
+      list.innerHTML = '';
+      const startSym = currentGrammar.start || 'S';
+      for (const [nt, rhs] of Object.entries(currentGrammar.productions)) {
+        const rhsStr = rhs.map(r => r || 'Λ').join(' | ');
+        list.innerHTML += `<div class="production">${nt} → ${rhsStr}</div>`;
+      }
+      resetDerivation();
+    }
+
+    function resetDerivation() {
+      const startSym = currentGrammar.start || 'S';
+      workingStr = [{char: startSym, isNT: true}];
+      history = [startSym];
+      selectedIdx = -1;
+      document.getElementById('stepsDisplay').textContent = '0';
+      document.getElementById('message').innerHTML = '';
+      render();
+    }
+
+    function render() {
+      const ws = document.getElementById('workingString');
+      ws.innerHTML = workingStr.map((item, i) => {
+        const cls = item.isNT ? 'nonterminal' + (i === selectedIdx ? ' selected' : '') : 'terminal';
+        return `<span class="ws-char ${cls}" onclick="selectChar(${i})">${item.char}</span>`;
+      }).join('');
+
+      // Show replace options if a NT is selected
+      const opts = document.getElementById('replaceOptions');
+      if (selectedIdx >= 0 && workingStr[selectedIdx].isNT) {
+        const nt = workingStr[selectedIdx].char;
+        const prods = currentGrammar.productions[nt] || [];
+        opts.innerHTML = prods.map((rhs, i) =>
+          `<button class="replace-btn" onclick="applyProduction(${i})">${nt} → ${rhs || 'Λ'}</button>`
+        ).join('');
+      } else {
+        opts.innerHTML = '<span style="color:#666;font-size:0.85rem">Select a nonterminal above...</span>';
+      }
+
+      // Derivation history
+      const hist = document.getElementById('derivationHistory');
+      hist.innerHTML = history.map((s, i) => `<div class="step">${i === 0 ? '' : '⇒ '}${s || 'Λ'}</div>`).join('');
+      hist.scrollTop = hist.scrollHeight;
+
+      // Check if done (no nonterminals left)
+      checkCompletion();
+    }
+
+    function selectChar(idx) {
+      if (!workingStr[idx].isNT) return;
+      selectedIdx = (selectedIdx === idx) ? -1 : idx;
+      render();
+    }
+
+    function applyProduction(prodIdx) {
+      if (selectedIdx < 0) return;
+      const nt = workingStr[selectedIdx].char;
+      const rhs = currentGrammar.productions[nt][prodIdx];
+
+      // Parse RHS into chars
+      const newChars = [];
+      if (rhs) {
+        for (const ch of rhs) {
+          const isNT = ch === ch.toUpperCase() && ch.match(/[A-Z]/);
+          newChars.push({char: ch, isNT: !!isNT});
+        }
+      }
+
+      // Replace in working string
+      workingStr.splice(selectedIdx, 1, ...newChars);
+      selectedIdx = -1;
+
+      // Update history
+      const strRepr = workingStr.map(c => c.char).join('') || 'Λ';
+      history.push(strRepr);
+      document.getElementById('stepsDisplay').textContent = history.length - 1;
+      render();
+    }
+
+    function undoStep() {
+      if (history.length <= 1) return;
+      history.pop();
+      // Rebuild working string from start
+      const startSym = currentGrammar.start || 'S';
+      // Simple undo: re-parse last history entry
+      const lastStr = history[history.length - 1];
+      workingStr = [];
+      for (const ch of lastStr) {
+        if (ch === 'Λ') continue;
+        const isNT = ch === ch.toUpperCase() && ch.match(/[A-Z]/);
+        workingStr.push({char: ch, isNT: !!isNT});
+      }
+      if (lastStr === 'Λ' || lastStr === '') workingStr = [];
+      selectedIdx = -1;
+      document.getElementById('stepsDisplay').textContent = history.length - 1;
+      document.getElementById('message').innerHTML = '';
+      render();
+    }
+
+    function checkCompletion() {
+      const hasNT = workingStr.some(c => c.isNT);
+      if (hasNT) return;
+
+      const word = workingStr.map(c => c.char).join('');
+      if (word === currentGrammar.target) {
+        score += 10;
+        document.getElementById('scoreDisplay').textContent = score;
+        showMessage(`🎉 You derived the target word "${currentGrammar.target}" in ${history.length-1} steps! +10 points`, 'success');
+      } else if (workingStr.length === 0) {
+        showMessage(`You derived the empty word Λ. ${currentGrammar.target === '' ? 'That\'s correct!' : 'The target was "'+currentGrammar.target+'". Try again!'}`, currentGrammar.target === '' ? 'success' : 'info');
+      } else {
+        showMessage(`You derived "${word}". ${word === currentGrammar.target ? '' : 'Target was "'+currentGrammar.target+'". Valid word, but not the target!'}`, 'info');
+      }
+    }
+
+    function nextGrammar() { levelIdx++; loadGrammar(); }
+    function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
+
+    loadGrammar();
+  </script>
+</body>
+</html>

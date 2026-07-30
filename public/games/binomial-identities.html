@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Binomial Identity Prover - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 290px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .grid-area { background: #16213e; border-radius: 12px; padding: 1.5rem; text-align: center; }
+    .grid-area h4 { color: #667eea; margin-bottom: 0.75rem; }
+    .grid-container { display: inline-block; position: relative; margin: 0.5rem auto; }
+    .grid-cell { width: 38px; height: 38px; display: inline-flex; align-items: center;
+      justify-content: center; border: 1px solid #2a3a5e; font-size: 0.75rem; color: #888;
+      cursor: pointer; transition: all 0.15s; border-radius: 4px; margin: 1px; }
+    .grid-cell:hover { border-color: #667eea; background: rgba(102,126,234,0.1); }
+    .grid-cell.on-path { background: rgba(46,204,113,0.25); border-color: #2ecc71; color: #2ecc71; font-weight: bold; }
+    .grid-cell.highlight { background: rgba(243,156,18,0.2); border-color: #f39c12; color: #f39c12; }
+    .identity-box { background: #16213e; border-radius: 8px; padding: 1.5rem; margin-bottom: 1rem; }
+    .identity-box h4 { color: #667eea; margin-bottom: 0.5rem; }
+    .identity-display { font-size: 1.2rem; color: #eee; text-align: center; padding: 0.75rem;
+      background: #1a1a2e; border-radius: 8px; font-family: serif; }
+    .pascal-area { background: #16213e; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; text-align: center; }
+    .pascal-area h4 { color: #667eea; margin-bottom: 0.5rem; }
+    .pascal-row { display: flex; justify-content: center; gap: 2px; margin: 2px 0; }
+    .pascal-cell { width: 36px; height: 28px; display: inline-flex; align-items: center;
+      justify-content: center; font-size: 0.7rem; color: #888; border-radius: 4px;
+      border: 1px solid transparent; cursor: pointer; transition: all 0.15s; }
+    .pascal-cell:hover { border-color: #667eea; }
+    .pascal-cell.selected { background: rgba(46,204,113,0.3); border-color: #2ecc71; color: #2ecc71; font-weight: bold; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .explanation { background: #16213e; border-radius: 8px; padding: 1rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; font-size: 0.9rem; line-height: 1.7; }
+    .mode-select { display: flex; gap: 0.5rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .mode-select button.active-mode { border: 2px solid #667eea; background: rgba(102,126,234,0.2); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🧱 Binomial Identity Prover</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p><strong>Block Walking:</strong> C(n,r) = number of paths from (0,0) to (r, n-r) using only right (→) and up (↑) steps.
+      Click grid cells to trace a path. <strong>Pascal's Triangle:</strong> Select entries that sum to prove an identity.
+      <strong>Evaluate:</strong> Compute values using the binomial theorem.</p>
+    </div>
+    <div class="mode-select">
+      <button class="btn btn-secondary active-mode" onclick="setMode('walk')">Block Walking</button>
+      <button class="btn btn-secondary" onclick="setMode('pascal')">Pascal's Triangle</button>
+      <button class="btn btn-secondary" onclick="setMode('evaluate')">Evaluate Identities</button>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="identity-box">
+          <h4 id="challengeTitle">Challenge 1</h4>
+          <div class="identity-display" id="identityDisplay"></div>
+        </div>
+        <div id="mainArea"></div>
+        <div class="controls" style="margin-top:1rem">
+          <button class="btn btn-primary" onclick="checkAnswer()">Check</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+          <button class="btn btn-secondary" onclick="nextProblem()">Next</button>
+          <button class="btn btn-secondary" onclick="resetProblem()">Reset</button>
+        </div>
+        <div id="message"></div>
+        <div class="explanation" id="explanation">
+          <h4>Proof</h4>
+          <p id="explanationText"></p>
+        </div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Level</h4><div class="value" id="levelDisplay">1</div></div>
+        <div class="stat-box"><h4>Your Selection</h4>
+          <div id="selectionInfo" style="color:#bbb;font-size:0.85rem">-</div></div>
+        <div class="theory-box">
+          <h4>Block Walking Model</h4>
+          <p id="theoryNote">C(n,r) = paths from (0,0) to (r,n-r) on a grid, moving only → or ↑.<br><br>
+          <strong>Pascal's identity:</strong> C(n,r) = C(n-1,r-1) + C(n-1,r)<br>
+          Proof: paths to (r,n-r) must come from (r-1,n-r) [→ step] or (r,n-r-1) [↑ step].<br><br>
+          <strong>Binomial theorem:</strong> (1+x)ⁿ = Σ C(n,k)xᵏ</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let mode = 'walk', score = 0, levelIdx = 0;
+    let currentProblem = null, userPath = [], selectedCells = new Set();
+
+    function C(n, r) { if (r<0||r>n) return 0; let v=1; for(let i=0;i<Math.min(r,n-r);i++) v=v*(n-i)/(i+1); return Math.round(v); }
+
+    const walkProblems = [
+      { n:4, r:2, title:"Count paths: C(4,2)",
+        identity:"C(4,2) = number of paths from (0,0) to (2,2)",
+        explain:"C(4,2)=6. Each path uses 2→ and 2↑ steps in some order. Arrangements of RRUU = 4!/(2!2!) = 6." },
+      { n:5, r:3, title:"Count paths: C(5,3)",
+        identity:"C(5,3) = paths from (0,0) to (3,2) = 10",
+        explain:"C(5,3)=10. Choose which 3 of the 5 steps are → (the rest are ↑). That's C(5,3) = 10." },
+      { n:6, r:2, title:"Count paths: C(6,2)",
+        identity:"C(6,2) = paths from (0,0) to (2,4) = 15",
+        explain:"C(6,2)=15. The path has 6 steps total: 2 right and 4 up. Choose which 2 are right: C(6,2)=15." },
+      { n:5, r:2, title:"Prove Pascal: C(5,2) = C(4,1) + C(4,2)",
+        identity:"C(5,2) = C(4,1) + C(4,2) = 4 + 6 = 10",
+        explain:"Pascal's identity: every path to (2,3) either comes from (1,3) via → [C(4,1)=4 paths] or from (2,2) via ↑ [C(4,2)=6 paths]. Total: 4+6=10=C(5,2). ✓" },
+    ];
+
+    const pascalProblems = [
+      { identity:"C(5,0)+C(5,1)+C(5,2)+C(5,3)+C(5,4)+C(5,5) = 2⁵ = 32",
+        targetRow: 5, targetSum: 32, selectAll: true,
+        explain:"Sum of row 5 of Pascal's triangle = 2⁵. Proof: set x=1 in (1+x)⁵ = Σ C(5,k)·1ᵏ = 2⁵." },
+      { identity:"C(4,0)+C(4,2)+C(4,4) = C(4,1)+C(4,3) = 8",
+        targetRow: 4, targetSum: 8, selectEven: true,
+        explain:"Sum of even-position entries = sum of odd-position entries = 2ⁿ⁻¹. Set x=-1: (1-1)⁴=0, so even sum = odd sum. Each = 2⁴/2 = 8." },
+      { identity:"C(3,0)²+C(3,1)²+C(3,2)²+C(3,3)² = C(6,3) = 20",
+        targetRow: 3, targetSum: 20, selectSquares: true,
+        explain:"Vandermonde's identity special case: Σ C(n,k)² = C(2n,n). Here: 1+9+9+1 = 20 = C(6,3)." },
+    ];
+
+    const evalProblems = [
+      { identity:"What is C(7,3)?", answer: 35,
+        explain:"C(7,3) = 7!/(3!·4!) = (7×6×5)/(3×2×1) = 35." },
+      { identity:"What is C(10,4) + C(10,5)?", answer: C(11,5),
+        explain:"By Pascal's identity: C(10,4)+C(10,5) = C(11,5) = 462." },
+      { identity:"What is Σ k·C(5,k) for k=0..5?", answer: 5*Math.pow(2,4),
+        explain:"By differentiation: Σ k·C(n,k) = n·2ⁿ⁻¹. So 5·2⁴ = 80. (Differentiate (1+x)⁵, set x=1.)" },
+      { identity:"What is C(8,3) + C(8,4)?", answer: C(9,4),
+        explain:"Pascal's identity: C(8,3)+C(8,4) = C(9,4) = 126." },
+      { identity:"What is (-1)⁰C(6,0)+(-1)¹C(6,1)+...+(-1)⁶C(6,6)?", answer: 0,
+        explain:"Set x=-1 in (1+x)⁶: (1-1)⁶ = 0. The alternating sum of any row always = 0 (for n≥1)." },
+    ];
+
+    function setMode(m) {
+      mode = m; levelIdx = 0;
+      document.querySelectorAll('.mode-select button').forEach(b=>b.classList.remove('active-mode'));
+      event.target.classList.add('active-mode');
+      loadProblem();
+    }
+
+    function loadProblem() {
+      userPath = []; selectedCells = new Set();
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('explanation').style.display = 'none';
+      document.getElementById('selectionInfo').textContent = '-';
+      document.getElementById('levelDisplay').textContent = levelIdx + 1;
+
+      if (mode === 'walk') loadWalk();
+      else if (mode === 'pascal') loadPascal();
+      else loadEval();
+    }
+
+    function loadWalk() {
+      const p = walkProblems[levelIdx % walkProblems.length];
+      currentProblem = p;
+      document.getElementById('challengeTitle').textContent = p.title;
+      document.getElementById('identityDisplay').innerHTML = p.identity;
+
+      const rows = p.n - p.r + 1; // up steps + 1
+      const cols = p.r + 1;       // right steps + 1
+      let html = '<div class="grid-area"><h4>Grid: click cells to trace a path from bottom-left to top-right</h4>';
+      html += '<div class="grid-container" style="display:grid;grid-template-columns:repeat('+cols+',40px);gap:2px">';
+      for (let row = rows-1; row >= 0; row--) {
+        for (let col = 0; col < cols; col++) {
+          const pathCount = C(row+col, col);
+          html += `<div class="grid-cell" data-row="${row}" data-col="${col}" onclick="clickGrid(${row},${col})">${pathCount}</div>`;
+        }
+      }
+      html += '</div><p style="color:#888;font-size:0.8rem;margin-top:0.5rem">Numbers show C(row+col, col) = paths to that cell. Click to highlight a path.</p></div>';
+      document.getElementById('mainArea').innerHTML = html;
+
+      document.getElementById('theoryNote').innerHTML = `<strong>Block Walking:</strong><br>C(${p.n},${p.r}) = paths from (0,0) to (${p.r},${p.n-p.r}).<br><br>Each cell shows how many paths reach it. The value at (c,r) is C(r+c, c).<br><br>Pascal's identity in action: each cell's value = sum of the cell below + cell to its left.`;
+    }
+
+    function loadPascal() {
+      const p = pascalProblems[levelIdx % pascalProblems.length];
+      currentProblem = p;
+      document.getElementById('challengeTitle').textContent = "Pascal's Triangle";
+      document.getElementById('identityDisplay').innerHTML = p.identity;
+
+      let html = '<div class="pascal-area"><h4>Click entries to select them (prove the identity by selecting the right entries)</h4>';
+      const maxRow = 7;
+      for (let n = 0; n <= maxRow; n++) {
+        html += '<div class="pascal-row">';
+        for (let k = 0; k <= n; k++) {
+          const val = C(n, k);
+          html += `<div class="pascal-cell" data-n="${n}" data-k="${k}" onclick="clickPascal(${n},${k})">${val}</div>`;
+        }
+        html += '</div>';
+      }
+      html += '</div>';
+      document.getElementById('mainArea').innerHTML = html;
+
+      document.getElementById('theoryNote').innerHTML = `<strong>Pascal's Triangle:</strong><br>Row n contains C(n,0), C(n,1), ..., C(n,n).<br><br>Each entry = sum of the two above it (Pascal's identity).<br><br>Row sum = 2ⁿ (set x=1 in binomial theorem).<br>Alternating sum = 0 (set x=-1).`;
+    }
+
+    function loadEval() {
+      const p = evalProblems[levelIdx % evalProblems.length];
+      currentProblem = p;
+      document.getElementById('challengeTitle').textContent = "Evaluate";
+      document.getElementById('identityDisplay').innerHTML = p.identity;
+
+      let html = '<div style="background:#16213e;border-radius:8px;padding:1.5rem">';
+      html += '<h4 style="color:#667eea;margin-bottom:0.75rem">Compute the value:</h4>';
+      html += '<div style="display:flex;gap:0.75rem;align-items:center">';
+      html += '<span style="color:#bbb">Answer:</span>';
+      html += '<input type="number" id="evalAnswer" style="background:#2a3a5e;border:2px solid #4a5568;border-radius:6px;padding:0.5rem;color:#fff;font-size:1.1rem;width:120px">';
+      html += '</div></div>';
+      document.getElementById('mainArea').innerHTML = html;
+      document.getElementById('evalAnswer').addEventListener('keydown', e => { if(e.key==='Enter') checkAnswer(); });
+
+      document.getElementById('theoryNote').innerHTML = `<strong>Useful tools:</strong><br>• C(n,r) = n!/(r!(n-r)!)<br>• Pascal: C(n,r)+C(n,r+1)=C(n+1,r+1)<br>• (1+x)ⁿ at x=1 → sum of row = 2ⁿ<br>• Differentiate: Σk·C(n,k)xᵏ⁻¹ = n(1+x)ⁿ⁻¹<br>• At x=1: Σk·C(n,k) = n·2ⁿ⁻¹`;
+    }
+
+    function clickGrid(row, col) {
+      const key = `${row},${col}`;
+      if (selectedCells.has(key)) { selectedCells.delete(key); } else { selectedCells.add(key); }
+      document.querySelectorAll('.grid-cell').forEach(cell => {
+        const r = cell.dataset.row, c = cell.dataset.col;
+        cell.classList.toggle('on-path', selectedCells.has(`${r},${c}`));
+      });
+      document.getElementById('selectionInfo').textContent = `${selectedCells.size} cells selected`;
+    }
+
+    function clickPascal(n, k) {
+      const key = `${n},${k}`;
+      if (selectedCells.has(key)) { selectedCells.delete(key); } else { selectedCells.add(key); }
+      document.querySelectorAll('.pascal-cell').forEach(cell => {
+        const cn = cell.dataset.n, ck = cell.dataset.k;
+        cell.classList.toggle('selected', selectedCells.has(`${cn},${ck}`));
+      });
+      let sum = 0;
+      selectedCells.forEach(key => { const [n,k] = key.split(',').map(Number); sum += C(n,k); });
+      document.getElementById('selectionInfo').textContent = `Sum of selected: ${sum}`;
+    }
+
+    function checkAnswer() {
+      if (mode === 'walk') {
+        const p = currentProblem;
+        // Check if they selected a valid path from (0,0) to (r, n-r)
+        if (selectedCells.has(`0,0`) && selectedCells.has(`${p.n-p.r},${p.r}`)) {
+          // Verify it's a connected path
+          score += 10;
+          showMessage(`✓ You traced a valid path! There are C(${p.n},${p.r}) = ${C(p.n,p.r)} such paths total. +10`, 'success');
+        } else if (selectedCells.size === 0) {
+          showMessage('Click cells on the grid to trace a path from bottom-left (0,0) to top-right.', 'error');
+        } else {
+          score += 5;
+          showMessage(`You selected ${selectedCells.size} cells. A valid path from (0,0) to (${p.r},${p.n-p.r}) has ${p.n+1} cells. +5 for effort`, 'info');
+        }
+      } else if (mode === 'pascal') {
+        const p = currentProblem;
+        let sum = 0;
+        selectedCells.forEach(key => { const [n,k] = key.split(',').map(Number); sum += C(n,k); });
+        if (sum === p.targetSum) {
+          score += 10;
+          showMessage(`✓ Correct! Sum of selected entries = ${sum}. +10 points`, 'success');
+        } else {
+          showMessage(`Sum of your selection = ${sum}, but target is ${p.targetSum}. Select the right entries!`, 'error');
+        }
+      } else {
+        const p = currentProblem;
+        const input = document.getElementById('evalAnswer');
+        const ua = parseInt(input.value);
+        if (isNaN(ua)) { showMessage('Enter a number!', 'error'); return; }
+        if (ua === p.answer) {
+          score += 10;
+          showMessage(`✓ Correct! The answer is ${p.answer}. +10 points`, 'success');
+        } else {
+          showMessage(`✗ Incorrect. The answer is ${p.answer}.`, 'error');
+        }
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+      document.getElementById('explanation').style.display = 'block';
+      document.getElementById('explanationText').innerHTML = currentProblem.explain;
+    }
+
+    function showHint() {
+      if (mode === 'walk') {
+        showMessage(`Start at bottom-left (0,0) and reach top-right (${currentProblem.r},${currentProblem.n-currentProblem.r}). Each step goes → or ↑. The number in each cell tells you how many paths lead there.`, 'info');
+      } else if (mode === 'pascal') {
+        showMessage(`Select entries from Pascal's triangle whose values sum to the target. Row n has entries C(n,0)...C(n,n). Row sum = 2ⁿ.`, 'info');
+      } else {
+        showMessage(`Use the formulas: C(n,r) = n!/(r!(n-r)!), Pascal's identity, or the binomial theorem with specific x values.`, 'info');
+      }
+    }
+
+    function resetProblem() { selectedCells = new Set(); loadProblem(); }
+    function nextProblem() { levelIdx++; loadProblem(); }
+    function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
+
+    loadProblem();
+  </script>
+</body>
+</html>

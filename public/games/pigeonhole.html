@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pigeonhole Principle - CS Study Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .problem-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .problem-box h3 { color: #667eea; margin-bottom: 1rem; }
+    .problem-box .scenario { font-size: 1.05rem; line-height: 1.8; color: #eee; }
+    .visual-area { background: #1a1a2e; border-radius: 8px; padding: 1.5rem; margin: 1rem 0; text-align: center; }
+    .holes-row { display: flex; justify-content: center; gap: 0.5rem; flex-wrap: wrap; margin: 0.5rem 0; }
+    .hole { width: 50px; height: 60px; background: #2a3a5e; border: 2px solid #4a5568; border-radius: 0 0 8px 8px;
+      display: flex; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 4px;
+      position: relative; font-size: 0.7rem; color: #888; }
+    .hole .label { position: absolute; top: -18px; font-size: 0.7rem; color: #667eea; }
+    .pigeon { width: 14px; height: 14px; background: #f39c12; border-radius: 50%; margin: 1px; }
+    .answer-row { display: flex; gap: 0.75rem; align-items: center; margin: 1.5rem 0; }
+    .answer-row label { color: #bbb; font-size: 1rem; }
+    .answer-row input { background: #2a3a5e; border: 2px solid #4a5568; border-radius: 8px;
+      padding: 0.6rem 1rem; color: #fff; font-size: 1.2rem; width: 100px; text-align: center; }
+    .answer-row input:focus { outline: none; border-color: #667eea; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .explanation { background: #16213e; border-radius: 8px; padding: 1rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; font-size: 0.9rem; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header"><a href="/">&#8592;</a><h2>🐦 Pigeonhole Principle</h2></div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>The <strong>Pigeonhole Principle</strong> states: if n items are placed into m containers with n > m, then at least one container must hold more than one item. Apply this to solve guaranteed-outcome problems!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="problem-box">
+          <h3 id="problemTitle">Problem 1</h3>
+          <div class="scenario" id="scenarioText"></div>
+        </div>
+        <div class="visual-area" id="visualArea"></div>
+        <div class="answer-row">
+          <label>Your answer:</label>
+          <input type="number" id="answerInput" placeholder="?">
+          <button class="btn btn-primary" onclick="checkAnswer()">Check</button>
+        </div>
+        <div class="controls">
+          <button class="btn btn-secondary" onclick="nextProblem()">Next Problem</button>
+        </div>
+        <div id="message"></div>
+        <div class="explanation" id="explanation"><h4>Why?</h4><p id="expText"></p></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Streak</h4><div class="value" id="streakDisplay">0</div></div>
+        <div class="theory-box"><h4>The Principle</h4>
+          <p><strong>Basic form:</strong> If n pigeons go into m holes and n > m, some hole has ≥ 2 pigeons.<br><br>
+          <strong>Generalized:</strong> If n items go into m containers, some container has ≥ ⌈n/m⌉ items.<br><br>
+          <strong>For "minimum draws":</strong> To GUARANTEE at least k items of one type from m types, you need:<br>
+          <code>(k−1)×m + 1</code> draws in the worst case.<br><br>
+          <strong>Key insight:</strong> The principle is about the WORST case, not average or best case. You must assume maximum bad luck.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, streak = 0, qIdx = 0;
+    const problems = [
+      { q: "A drawer contains <strong>10 red socks</strong> and <strong>10 blue socks</strong> (all mixed up). You pull socks out in the dark. What is the <strong>minimum number</strong> you must pull to GUARANTEE you have a matching pair?",
+        answer: 3, pigeons: 3, holes: 2, holeLabels: ['Red','Blue'], itemName: 'socks', holeName: 'colours',
+        explain: "There are 2 colours (categories). By the pigeonhole principle, after pulling 2+1=3 socks, at least one colour must appear twice. The worst case: first 2 socks are different colours; the 3rd MUST match one of them." },
+      { q: "There are <strong>12 months</strong> in a year. What is the minimum number of people needed in a room to GUARANTEE that at least <strong>2 share a birthday month</strong>?",
+        answer: 13, pigeons: 13, holes: 12, holeLabels: ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'], itemName: 'people', holeName: 'months',
+        explain: "12 months = 12 categories. With 12 people, it's POSSIBLE each has a different month. Person 13 must share a month with someone. Formula: m+1 = 12+1 = 13." },
+      { q: "A bag contains balls of <strong>5 different colours</strong>. What is the minimum number of balls you must draw to GUARANTEE you have <strong>3 balls of the same colour</strong>?",
+        answer: 11, pigeons: 11, holes: 5, holeLabels: ['Col 1','Col 2','Col 3','Col 4','Col 5'], itemName: 'balls', holeName: 'colours',
+        explain: "5 colours (categories), want ≥3 in one category. Worst case: exactly 2 of each colour = 2×5 = 10 balls, still no colour has 3. Ball 11 MUST give some colour its 3rd. Formula: (k-1)×m + 1 = (3-1)×5 + 1 = 11." },
+      { q: "In a group of <strong>367 people</strong>, what can you guarantee about their birthdays?",
+        answer: 2, pigeons: 367, holes: 366, holeLabels: ['366 days'], itemName: 'people', holeName: 'days',
+        explain: "There are at most 366 possible birthdays (including Feb 29). With 367 people and 366 possible days, by the pigeonhole principle at least 2 people must share a birthday. (366+1=367)." },
+      { q: "A drawer has socks in <strong>4 colours</strong>: red, blue, green, black (many of each). How many must you pull to guarantee <strong>5 matching socks</strong>?",
+        answer: 17, pigeons: 17, holes: 4, holeLabels: ['Red','Blue','Grn','Blk'], itemName: 'socks', holeName: 'colours',
+        explain: "4 colours, want ≥5 of one colour. Worst case: 4 of each = 4×4 = 16, still no colour has 5. Sock 17 guarantees it. Formula: (5-1)×4 + 1 = 17." },
+      { q: "If you pick <strong>5 numbers</strong> from the set {1, 2, 3, 4, 5, 6, 7, 8}, can you guarantee two of them sum to 9?",
+        answer: 5, pigeons: 5, holes: 4, holeLabels: ['{1,8}','{2,7}','{3,6}','{4,5}'], itemName: 'numbers', holeName: 'pairs',
+        explain: "Group the 8 numbers into 4 pairs that sum to 9: {1,8}, {2,7}, {3,6}, {4,5}. These are the 'categories'. If you pick 5 numbers from 4 pairs, by pigeonhole at least 2 must come from the same pair → they sum to 9! (Answer: Yes, 5 picks guarantees it.)" },
+      { q: "How many cards must you draw from a standard 52-card deck to GUARANTEE getting <strong>5 cards of the same suit</strong>?",
+        answer: 17, pigeons: 17, holes: 4, holeLabels: ['♥','♦','♣','♠'], itemName: 'cards', holeName: 'suits',
+        explain: "4 suits (categories), want ≥5 in one suit. Worst case: 4 cards per suit = 4×4 = 16, no suit has 5. Card 17 forces it. Formula: (5-1)×4 + 1 = 17." },
+      { q: "Show that among any <strong>6 people</strong>, either 3 are mutual friends or 3 are mutual strangers. How many 'categories' does the pigeonhole argument use for one person's relationships?",
+        answer: 2, pigeons: 5, holes: 2, holeLabels: ['Friends','Strangers'], itemName: 'relationships', holeName: 'types',
+        explain: "Pick any person P. They have 5 relationships (to the other 5 people). Each is either 'friend' or 'stranger' (2 types). By pigeonhole, at least ⌈5/2⌉ = 3 are of the same type. WLOG say P has ≥3 friends. Among those 3: if any two are friends → 3 mutual friends (P + those 2). If none are friends → 3 mutual strangers. This is Ramsey theory!" },
+    ];
+
+    function loadProblem() {
+      const p = problems[qIdx % problems.length];
+      document.getElementById('problemTitle').textContent = `Problem ${qIdx+1}`;
+      document.getElementById('scenarioText').innerHTML = p.q;
+      document.getElementById('answerInput').value = '';
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('explanation').style.display = 'none';
+      drawVisual(p);
+    }
+
+    function drawVisual(p) {
+      const area = document.getElementById('visualArea');
+      const itemName = p.itemName || 'items';
+      const holeName = p.holeName || 'categories';
+      let html = `<div style="color:#888;font-size:0.8rem;margin-bottom:0.5rem">${p.pigeons} ${itemName} → ${p.holes} ${holeName}</div>`;
+      html += '<div class="holes-row">';
+      const perHole = Math.ceil(p.pigeons / p.holes);
+      for (let h = 0; h < Math.min(p.holes, 8); h++) {
+        html += `<div class="hole"><span class="label">${p.holeLabels[h] || ''}</span>`;
+        for (let i = 0; i < Math.min(perHole, 5); i++) html += '<div class="pigeon"></div>';
+        html += '</div>';
+      }
+      if (p.holes > 8) html += `<div style="color:#888;margin-left:0.5rem;align-self:center">...+${p.holes-8} more</div>`;
+      html += '</div>';
+      html += `<div style="color:#f39c12;font-size:0.85rem;margin-top:0.5rem">Worst case: some ${holeName.slice(0,-1)||'category'} must have ≥ ⌈${p.pigeons}/${p.holes}⌉ = ${Math.ceil(p.pigeons/p.holes)} ${itemName}</div>`;
+      area.innerHTML = html;
+    }
+
+    function checkAnswer() {
+      const p = problems[qIdx % problems.length];
+      const ua = parseInt(document.getElementById('answerInput').value);
+      if (isNaN(ua)) { showMessage('Enter a number!','error'); return; }
+      if (ua === p.answer) {
+        score += 10; streak++;
+        showMessage(`✓ Correct! +10 points`,'success');
+      } else {
+        streak = 0;
+        showMessage(`✗ The answer is ${p.answer}.`,'error');
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+      document.getElementById('streakDisplay').textContent = streak;
+      document.getElementById('explanation').style.display = 'block';
+      document.getElementById('expText').innerHTML = p.explain;
+    }
+
+    function nextProblem() { qIdx++; loadProblem(); }
+    function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
+    document.getElementById('answerInput').addEventListener('keydown', e => { if(e.key==='Enter') checkAnswer(); });
+    loadProblem();
+  </script>
+</body>
+</html>

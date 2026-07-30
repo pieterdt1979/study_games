@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Colouring Challenge - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .game-layout { grid-template-columns: 1fr; }
+    }
+    .canvas-wrap {
+      position: relative;
+    }
+    canvas {
+      width: 100%;
+      height: 500px;
+      cursor: pointer;
+    }
+    .palette {
+      display: flex;
+      gap: 0.5rem;
+      flex-wrap: wrap;
+      margin: 1rem 0;
+    }
+    .colour-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      border: 3px solid transparent;
+      cursor: pointer;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .colour-btn:hover {
+      transform: scale(1.15);
+    }
+    .colour-btn.active {
+      border-color: #fff;
+      transform: scale(1.2);
+    }
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+    .stat-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .stat-box h4 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-box .value {
+      font-size: 1.8rem;
+      font-weight: bold;
+    }
+    .level-info {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .level-info h4 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+    .legend {
+      margin-top: 0.5rem;
+      font-size: 0.85rem;
+      color: #aaa;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🎨 Graph Colouring Challenge</h2>
+    </div>
+
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Select a colour from the palette, then click a vertex to colour it. Your goal: colour every vertex so that <strong>no two adjacent vertices share the same colour</strong>, using as few colours as possible. The minimum number needed is called the <strong>chromatic number χ(G)</strong>.</p>
+    </div>
+
+    <div class="game-layout">
+      <div class="canvas-wrap">
+        <canvas id="graphCanvas"></canvas>
+        <div class="palette" id="palette"></div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkSolution()">Check Solution</button>
+          <button class="btn btn-secondary" onclick="resetColours()">Reset Colours</button>
+          <button class="btn btn-secondary" onclick="nextLevel()">Next Graph</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+        </div>
+        <div id="message"></div>
+      </div>
+
+      <div class="sidebar">
+        <div class="stat-box">
+          <h4>Level</h4>
+          <div class="value" id="levelDisplay">1</div>
+        </div>
+        <div class="stat-box">
+          <h4>Colours Used</h4>
+          <div class="value" id="coloursUsed">0</div>
+        </div>
+        <div class="stat-box">
+          <h4>Target χ(G)</h4>
+          <div class="value" id="targetChi">?</div>
+        </div>
+        <div class="stat-box">
+          <h4>Score</h4>
+          <div class="value" id="scoreDisplay">0</div>
+        </div>
+        <div class="level-info">
+          <h4>Theory Notes</h4>
+          <div class="legend" id="theoryNote">
+            A <strong>colouring</strong> assigns colours to vertices so no adjacent vertices share a colour. The <strong>chromatic number χ(G)</strong> is the minimum number of colours needed. If a graph contains K<sub>n</sub> as a subgraph, then χ(G) ≥ n.
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const COLOURS = [
+      '#e74c3c', '#3498db', '#2ecc71', '#f39c12',
+      '#9b59b6', '#1abc9c', '#e67e22', '#fd79a8'
+    ];
+    const COLOUR_NAMES = ['Red', 'Blue', 'Green', 'Orange', 'Purple', 'Teal', 'Dark Orange', 'Pink'];
+
+    let currentLevel = 0;
+    let score = 0;
+    let selectedColour = 0;
+    let vertices = [];
+    let edges = [];
+    let vertexColours = [];
+    let chromaticNumber = 2;
+
+    // Level definitions
+    const levels = [
+      {
+        name: "Path Graph P4",
+        vertices: [[150,250],[300,150],[450,150],[600,250]],
+        edges: [[0,1],[1,2],[2,3]],
+        chi: 2,
+        note: "A path graph is bipartite (no odd circuits), so χ = 2. Bipartite graphs can always be 2-coloured."
+      },
+      {
+        name: "Circuit C4 (Even)",
+        vertices: [[200,120],[500,120],[500,380],[200,380]],
+        edges: [[0,1],[1,2],[2,3],[3,0]],
+        chi: 2,
+        note: "An even circuit C₄ is bipartite — it has no odd circuits. So χ(C₄) = 2. Remember: χ(G) ≤ 2 iff G has no odd circuits."
+      },
+      {
+        name: "Triangle K3",
+        vertices: [[350,100],[200,350],[500,350]],
+        edges: [[0,1],[1,2],[2,0]],
+        chi: 3,
+        note: "K₃ (a triangle) is a complete graph on 3 vertices. Since every pair is adjacent, χ(K₃) = 3. Odd circuits need 3 colours."
+      },
+      {
+        name: "Circuit C5 (Odd)",
+        vertices: [[350,80],[180,220],[240,400],[460,400],[520,220]],
+        edges: [[0,1],[1,2],[2,3],[3,4],[4,0]],
+        chi: 3,
+        note: "C₅ is an odd circuit. Odd circuits always need 3 colours. This graph is NOT bipartite (it has an odd circuit)."
+      },
+      {
+        name: "Complete Graph K4",
+        vertices: [[250,120],[500,120],[500,380],[250,380]],
+        edges: [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]],
+        chi: 4,
+        note: "K₄ has every vertex adjacent to all others. χ(Kₙ) = n always. You need exactly 4 colours."
+      },
+      {
+        name: "Petersen-like Graph",
+        vertices: [[350,60],[180,180],[220,380],[480,380],[520,180],[350,170],[260,260],[310,350],[400,350],[440,260]],
+        edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[0,5],[1,6],[2,7],[3,8],[4,9],[5,7],[7,9],[9,6],[6,8],[8,5]],
+        chi: 3,
+        note: "This graph has χ = 3. It contains odd circuits (so χ ≥ 3) but can be 3-coloured. Brooks' theorem: if G is not an odd circuit or Kₙ, then χ(G) ≤ max degree."
+      },
+      {
+        name: "Bipartite K2,3",
+        vertices: [[200,180],[200,350],[450,120],[450,260],[450,400]],
+        edges: [[0,2],[0,3],[0,4],[1,2],[1,3],[1,4]],
+        chi: 2,
+        note: "K₂,₃ is a complete bipartite graph. All bipartite graphs have χ = 2 (since they have no odd circuits). The two partite sets form the two colour classes."
+      },
+      {
+        name: "Wheel W5",
+        vertices: [[350,240],[350,80],[180,180],[180,340],[520,340],[520,180]],
+        edges: [[0,1],[0,2],[0,3],[0,4],[0,5],[1,2],[2,3],[3,4],[4,5],[5,1]],
+        chi: 4,
+        note: "A wheel graph W₅ has a central vertex adjacent to all others. The outer ring is an odd circuit (C₅), needing 3 colours. The center needs a 4th. So χ(W₅) = 4."
+      },
+      {
+        name: "Complete Graph K5",
+        vertices: [[350,60],[170,200],[230,420],[470,420],[530,200]],
+        edges: [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]],
+        chi: 5,
+        note: "K₅ is the complete graph on 5 vertices. Every vertex is adjacent to every other, so χ(K₅) = 5. K₅ is also non-planar!"
+      },
+      {
+        name: "Grotzsch Graph",
+        vertices: [[350,50],[180,140],[140,320],[560,320],[520,140],[350,180],[220,240],[250,360],[450,360],[480,240],[350,300]],
+        edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[5,7],[5,8],[6,8],[6,9],[7,9],[7,10],[8,10],[9,10],[5,10],[6,10],[0,5],[1,6],[2,7],[3,8],[4,9]],
+        chi: 4,
+        note: "This triangle-free graph needs 4 colours! It shows that high chromatic number doesn't require triangles. The 4-colour theorem says planar graphs need at most 4."
+      }
+    ];
+
+    function initPalette() {
+      const palette = document.getElementById('palette');
+      palette.innerHTML = '';
+      COLOURS.forEach((c, i) => {
+        const btn = document.createElement('div');
+        btn.className = 'colour-btn' + (i === selectedColour ? ' active' : '');
+        btn.style.background = c;
+        btn.title = COLOUR_NAMES[i];
+        btn.onclick = () => selectColour(i);
+        palette.appendChild(btn);
+      });
+    }
+
+    function selectColour(i) {
+      selectedColour = i;
+      document.querySelectorAll('.colour-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === i);
+      });
+    }
+
+    function loadLevel(idx) {
+      const level = levels[idx];
+      vertices = level.vertices.map(v => [...v]);
+      edges = [...level.edges];
+      chromaticNumber = level.chi;
+      vertexColours = new Array(vertices.length).fill(-1);
+
+      document.getElementById('levelDisplay').textContent = idx + 1;
+      document.getElementById('targetChi').textContent = '?';
+      document.getElementById('coloursUsed').textContent = '0';
+      document.getElementById('theoryNote').innerHTML = level.note;
+      document.getElementById('message').innerHTML = '';
+
+      resizeCanvas();
+      draw();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = 500;
+      // Scale vertices to canvas
+      const level = levels[currentLevel];
+      const maxX = Math.max(...level.vertices.map(v => v[0]));
+      const maxY = Math.max(...level.vertices.map(v => v[1]));
+      const scaleX = (canvas.width - 80) / maxX;
+      const scaleY = (canvas.height - 80) / maxY;
+      const scale = Math.min(scaleX, scaleY, 1.2);
+      const offsetX = (canvas.width - maxX * scale) / 2;
+      const offsetY = (canvas.height - maxY * scale) / 2;
+      vertices = level.vertices.map(v => [v[0] * scale + offsetX, v[1] * scale + offsetY]);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw edges
+      ctx.strokeStyle = '#4a5568';
+      ctx.lineWidth = 2;
+      edges.forEach(([a, b]) => {
+        ctx.beginPath();
+        ctx.moveTo(vertices[a][0], vertices[a][1]);
+        ctx.lineTo(vertices[b][0], vertices[b][1]);
+        ctx.stroke();
+      });
+
+      // Draw vertices
+      vertices.forEach((v, i) => {
+        ctx.beginPath();
+        ctx.arc(v[0], v[1], 22, 0, Math.PI * 2);
+        if (vertexColours[i] >= 0) {
+          ctx.fillStyle = COLOURS[vertexColours[i]];
+        } else {
+          ctx.fillStyle = '#2a3a5e';
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        // Label
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 14px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i + 1, v[0], v[1]);
+      });
+
+      updateColoursUsed();
+    }
+
+    function updateColoursUsed() {
+      const used = new Set(vertexColours.filter(c => c >= 0));
+      document.getElementById('coloursUsed').textContent = used.size;
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      for (let i = 0; i < vertices.length; i++) {
+        const dx = x - vertices[i][0];
+        const dy = y - vertices[i][1];
+        if (dx * dx + dy * dy < 22 * 22) {
+          vertexColours[i] = selectedColour;
+          draw();
+          return;
+        }
+      }
+    });
+
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      for (let i = 0; i < vertices.length; i++) {
+        const dx = x - vertices[i][0];
+        const dy = y - vertices[i][1];
+        if (dx * dx + dy * dy < 22 * 22) {
+          vertexColours[i] = -1;
+          draw();
+          return;
+        }
+      }
+    });
+
+    function checkSolution() {
+      const msgEl = document.getElementById('message');
+
+      // Check all coloured
+      if (vertexColours.includes(-1)) {
+        msgEl.innerHTML = '<div class="message message-error">Not all vertices are coloured yet!</div>';
+        return;
+      }
+
+      // Check proper colouring
+      let conflict = false;
+      for (const [a, b] of edges) {
+        if (vertexColours[a] === vertexColours[b]) {
+          conflict = true;
+          break;
+        }
+      }
+
+      if (conflict) {
+        msgEl.innerHTML = '<div class="message message-error">Conflict! Two adjacent vertices share a colour. Check your colouring.</div>';
+        return;
+      }
+
+      const used = new Set(vertexColours).size;
+      document.getElementById('targetChi').textContent = chromaticNumber;
+
+      if (used === chromaticNumber) {
+        score += 10;
+        const level = levels[currentLevel];
+        let whyText = '';
+        if (chromaticNumber === 2) whyText = '<br><strong>Why χ=2 works:</strong> This graph is bipartite (no odd circuits). The two colour classes form an independent partition — no edge connects vertices of the same class.';
+        else if (chromaticNumber === 3 && level.name.includes('C5')) whyText = '<br><strong>Why χ=3:</strong> The odd circuit C₅ forces 3 colours — going around the cycle, colours must alternate, but with an odd number of vertices you need a third to avoid conflict at the closing edge.';
+        else if (chromaticNumber === 3) whyText = '<br><strong>Why χ=3:</strong> This graph contains an odd circuit (or triangle K₃), which forces 3 colours. But 3 suffice because no K₄ subgraph exists.';
+        else if (chromaticNumber >= 4) whyText = `<br><strong>Why χ=${chromaticNumber}:</strong> The graph contains K${chromaticNumber} as a subgraph (${chromaticNumber} mutually adjacent vertices), forcing ${chromaticNumber} colours. You proved ${chromaticNumber} suffice by finding a valid colouring!`;
+        msgEl.innerHTML = `<div class="message message-success">Perfect! χ(G) = ${chromaticNumber} using exactly ${used} colours! +10 points${whyText}</div>`;
+      } else if (used <= chromaticNumber + 1) {
+        score += 5;
+        msgEl.innerHTML = `<div class="message message-info">Valid colouring with ${used} colours! But χ(G) = ${chromaticNumber}. Can you do it with fewer? +5 points</div>`;
+      } else {
+        score += 2;
+        msgEl.innerHTML = `<div class="message message-info">Valid colouring with ${used} colours, but χ(G) = ${chromaticNumber}. Try to use fewer colours! +2 points</div>`;
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function resetColours() {
+      vertexColours = new Array(vertices.length).fill(-1);
+      document.getElementById('message').innerHTML = '';
+      draw();
+    }
+
+    function nextLevel() {
+      currentLevel = (currentLevel + 1) % levels.length;
+      loadLevel(currentLevel);
+    }
+
+    function showHint() {
+      const msgEl = document.getElementById('message');
+      const level = levels[currentLevel];
+      let hint = `This graph is "${level.name}". `;
+
+      if (chromaticNumber === 2) {
+        hint += "It's bipartite (no odd circuits) — try splitting vertices into two groups where no group has edges within it.";
+      } else if (chromaticNumber === 3) {
+        hint += "Look for a triangle or odd circuit — that forces 3 colours. Start by colouring the triangle/circuit, then extend.";
+      } else {
+        hint += `Look for K${chromaticNumber} as a subgraph — that forces ${chromaticNumber} colours. Start there.`;
+      }
+      msgEl.innerHTML = `<div class="message message-info">${hint}</div>`;
+    }
+
+    // Init
+    initPalette();
+    loadLevel(0);
+    window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+</body>
+</html>

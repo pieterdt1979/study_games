@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regular Expression Builder - CS Study Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .problem-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .problem-box h3 { color: #667eea; margin-bottom: 1rem; }
+    .lang-desc { font-size: 1.1rem; color: #eee; line-height: 1.7; }
+    .test-words { background: #1a1a2e; border-radius: 8px; padding: 1rem; margin: 1rem 0; }
+    .test-words h4 { color: #888; font-size: 0.85rem; margin-bottom: 0.5rem; }
+    .word-list { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .word-chip { padding: 0.3rem 0.6rem; border-radius: 4px; font-family: monospace; font-size: 0.9rem; }
+    .word-chip.in { background: rgba(46,204,113,0.15); color: #2ecc71; border: 1px solid #2ecc71; }
+    .word-chip.out { background: rgba(231,76,60,0.1); color: #e74c3c; border: 1px solid #e74c3c; text-decoration: line-through; }
+    .input-area { margin: 1.5rem 0; }
+    .input-area label { color: #bbb; font-size: 0.9rem; display: block; margin-bottom: 0.5rem; }
+    .input-area input { width: 100%; background: #1a1a2e; border: 2px solid #4a5568; border-radius: 8px;
+      padding: 0.8rem 1rem; color: #2ecc71; font-family: monospace; font-size: 1.2rem; }
+    .input-area input:focus { outline: none; border-color: #667eea; }
+    .result-area { margin: 1rem 0; font-family: monospace; color: #bbb; font-size: 0.9rem; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .explanation { background: #16213e; border-radius: 8px; padding: 1rem; margin-top: 1rem;
+      border-left: 4px solid #2ecc71; display: none; }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; font-size: 0.9rem; line-height: 1.7; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header"><a href="/">&#8592;</a><h2>🔤 Regular Expression Builder</h2></div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Given a language description, write the <strong>regular expression</strong> that generates exactly that language.
+      Use: <code>a</code>, <code>b</code> (letters), <code>+</code> (union), <code>*</code> (Kleene star), concatenation, and <code>Λ</code> (empty word). Alphabet is {a, b}.</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="problem-box">
+          <h3 id="problemTitle">Challenge 1</h3>
+          <div class="lang-desc" id="langDesc"></div>
+        </div>
+        <div class="test-words">
+          <h4>Example words (✓ in language, ✗ not in language):</h4>
+          <div class="word-list" id="wordList"></div>
+        </div>
+        <div class="input-area">
+          <label>Your regular expression:</label>
+          <input type="text" id="regexInput" placeholder="e.g. (a+b)*ab">
+        </div>
+        <div class="result-area" id="resultArea"></div>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkRegex()">Check</button>
+          <button class="btn btn-secondary" onclick="showAnswer()">Show Answer</button>
+          <button class="btn btn-secondary" onclick="nextProblem()">Next</button>
+        </div>
+        <div id="message"></div>
+        <div class="explanation" id="explanation"><h4>Solution</h4><p id="expText"></p></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box"><h4>Level</h4><div class="value" id="levelDisplay">1</div></div>
+        <div class="theory-box"><h4>Regex Syntax</h4>
+          <p><code>a</code> — matches 'a'<br>
+          <code>ab</code> — concatenation (a then b)<br>
+          <code>a+b</code> — union (a or b)<br>
+          <code>a*</code> — zero or more a's<br>
+          <code>(ab)*</code> — zero or more 'ab's<br>
+          <code>Λ</code> or <code>λ</code> — empty word<br><br>
+          <strong>Precedence:</strong> * > concatenation > +<br><br>
+          <strong>Key insight:</strong> Regular expressions generate exactly the <strong>regular languages</strong> — the same languages accepted by FAs/NFAs.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let score = 0, qIdx = 0;
+    const problems = [
+      { desc: "All words over {a,b} that <strong>end with b</strong>",
+        inLang: ['b','ab','aab','bb','abab','aaab'], notInLang: ['a','','ba','aba'],
+        answer: "(a+b)*b", explain: "Any string of a's and b's ((a+b)*) followed by a final b. The * handles 'zero or more' of anything, and the trailing b ensures the word ends correctly." },
+      { desc: "All words over {a,b} that <strong>start with a</strong> and <strong>end with b</strong>",
+        inLang: ['ab','aab','abb','aabb','abab'], notInLang: ['ba','b','a','bb',''],
+        answer: "a(a+b)*b", explain: "Must start with 'a', end with 'b', anything in between: a(a+b)*b. The middle part (a+b)* allows any combination (including empty, giving 'ab')." },
+      { desc: "All words over {a,b} containing the substring <strong>bb</strong>",
+        inLang: ['bb','abb','bba','abba','aabb'], notInLang: ['','a','b','ab','aba','bab'],
+        answer: "(a+b)*bb(a+b)*", explain: "Anything, then 'bb', then anything: (a+b)*bb(a+b)*. The two (a+b)* parts handle arbitrary context around the required 'bb' substring." },
+      { desc: "All words over {a,b} with <strong>exactly two a's</strong>",
+        inLang: ['aa','baa','aba','aab','baab','baba'], notInLang: ['a','aaa','','bbb','aaab'],
+        answer: "b*ab*ab*", explain: "Exactly two a's with any number of b's around them: b*ab*ab*. Each b* allows zero or more b's in that position. No other a's can appear." },
+      { desc: "All words over {a,b} of <strong>even length</strong> (including empty word)",
+        inLang: ['','aa','ab','ba','bb','aaaa','abab'], notInLang: ['a','b','aab','bbb'],
+        answer: "((a+b)(a+b))*", explain: "Each iteration adds exactly 2 characters (any combination). Repeating this 0 or more times gives all even-length words. ((a+b)(a+b))* = pairs of characters, repeated." },
+      { desc: "The language {a, ab, abb, abbb, ...} = a followed by zero or more b's",
+        inLang: ['a','ab','abb','abbb','abbbb'], notInLang: ['','b','ba','aa','aab'],
+        answer: "ab*", explain: "One 'a' followed by zero or more 'b's: ab*. Simple but important — b* includes zero b's (giving just 'a')." },
+      { desc: "All words over {a,b} with an <strong>even number of a's</strong> (possibly zero)",
+        inLang: ['','bb','bab','aab','bba','aabb','bbbb','abab'], notInLang: ['a','aab','aba','bba'],
+        answer: "(b+ab*a)*", explain: "Key insight: between pairs of a's, any number of b's can appear. (b+ab*a)* means: either read b's freely, or read an 'a', some b's, then another 'a' (consuming a's in pairs). This keeps the a-count even." },
+      { desc: "The finite language {a, ab, ba}",
+        inLang: ['a','ab','ba'], notInLang: ['','b','aa','bb','aba','bab'],
+        answer: "a+ab+ba", explain: "For a finite language, just list all words with + (union): a+ab+ba. Finite languages are always regular!" },
+    ];
+
+    function loadProblem() {
+      const p = problems[qIdx % problems.length];
+      document.getElementById('problemTitle').textContent = `Challenge ${qIdx+1}`;
+      document.getElementById('langDesc').innerHTML = p.desc;
+      document.getElementById('levelDisplay').textContent = qIdx + 1;
+      document.getElementById('regexInput').value = '';
+      document.getElementById('resultArea').innerHTML = '';
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('explanation').style.display = 'none';
+      const wl = document.getElementById('wordList');
+      wl.innerHTML = p.inLang.map(w => `<span class="word-chip in">${w || 'Λ'}</span>`).join('') +
+        p.notInLang.map(w => `<span class="word-chip out">${w || 'Λ'}</span>`).join('');
+    }
+
+    function checkRegex() {
+      const p = problems[qIdx % problems.length];
+      const userRegex = document.getElementById('regexInput').value.trim();
+      if (!userRegex) { showMessage('Enter a regular expression!','error'); return; }
+
+      // Convert our regex syntax to JS regex for testing
+      try {
+        const jsRegex = convertToJS(userRegex);
+        const re = new RegExp('^(' + jsRegex + ')$');
+
+        // Test against all example words
+        let allCorrect = true;
+        let results = [];
+        for (const w of p.inLang) {
+          const match = re.test(w);
+          if (!match) { allCorrect = false; results.push(`"${w||'Λ'}" should be IN but your regex rejects it`); }
+        }
+        for (const w of p.notInLang) {
+          const match = re.test(w);
+          if (match) { allCorrect = false; results.push(`"${w||'Λ'}" should be OUT but your regex accepts it`); }
+        }
+
+        if (allCorrect) {
+          score += 10;
+          document.getElementById('scoreDisplay').textContent = score;
+          showMessage(`✓ Your regex "${userRegex}" correctly matches all test words! +10 points`,'success');
+          document.getElementById('explanation').style.display = 'block';
+          document.getElementById('expText').innerHTML = `<strong>One valid answer:</strong> <code>${p.answer}</code><br><br>${p.explain}`;
+        } else {
+          document.getElementById('resultArea').innerHTML = results.slice(0,3).map(r => `<div style="color:#e74c3c">✗ ${r}</div>`).join('');
+          showMessage('Not quite — some test words don\'t match correctly.','error');
+        }
+      } catch(e) {
+        showMessage(`Syntax error in your regex: ${e.message}. Use (a+b)*ab style notation.`,'error');
+      }
+    }
+
+    function convertToJS(r) {
+      // Convert our notation to JS regex: + → |, Λ/λ → empty, leave * and () as-is
+      return r.replace(/Λ|λ/g, '').replace(/\+/g, '|');
+    }
+
+    function showAnswer() {
+      const p = problems[qIdx % problems.length];
+      document.getElementById('explanation').style.display = 'block';
+      document.getElementById('expText').innerHTML = `<strong>Answer:</strong> <code>${p.answer}</code><br><br>${p.explain}`;
+    }
+
+    function nextProblem() { qIdx++; loadProblem(); }
+    function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
+    document.getElementById('regexInput').addEventListener('keydown', e => { if(e.key==='Enter') checkRegex(); });
+    loadProblem();
+  </script>
+</body>
+</html>

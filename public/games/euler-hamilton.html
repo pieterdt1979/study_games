@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Euler & Hamilton Pathfinder - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .game-layout { grid-template-columns: 1fr; }
+    }
+    canvas { width: 100%; height: 500px; cursor: pointer; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .stat-box h4 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .mode-select {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    .mode-select button.active-mode {
+      border: 2px solid #667eea;
+      background: rgba(102,126,234,0.2);
+    }
+    .degree-list {
+      font-size: 0.85rem;
+      color: #bbb;
+      line-height: 1.6;
+      max-height: 120px;
+      overflow-y: auto;
+    }
+    .path-display {
+      font-size: 0.9rem;
+      color: #2ecc71;
+      word-break: break-all;
+      min-height: 1.5rem;
+    }
+    .theory-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+      border-left: 4px solid #f39c12;
+    }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.85rem; line-height: 1.6; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🛤️ Euler & Hamilton Pathfinder</h2>
+    </div>
+
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Click vertices to build a path. In <strong>Euler mode</strong>, traverse every <em>edge</em> exactly once. In <strong>Hamilton mode</strong>, visit every <em>vertex</em> exactly once and return to start. Right-click to undo the last step.</p>
+    </div>
+
+    <div class="mode-select">
+      <button class="btn btn-secondary active-mode" onclick="setMode('euler')">Euler Cycle/Trail</button>
+      <button class="btn btn-secondary" onclick="setMode('hamilton')">Hamilton Circuit</button>
+    </div>
+
+    <div class="game-layout">
+      <div>
+        <canvas id="graphCanvas"></canvas>
+        <div class="controls">
+          <button class="btn btn-primary" onclick="checkPath()">Check Path</button>
+          <button class="btn btn-danger" id="noEulerBtn" onclick="declareNoEuler()" style="display:none">No Euler Cycle/Trail Exists!</button>
+          <button class="btn btn-secondary" onclick="resetPath()">Reset Path</button>
+          <button class="btn btn-secondary" onclick="nextLevel()">Next Graph</button>
+          <button class="btn btn-secondary" onclick="undoLast()">Undo</button>
+        </div>
+        <div id="message"></div>
+      </div>
+
+      <div class="sidebar">
+        <div class="stat-box">
+          <h4>Level</h4>
+          <div class="value" id="levelDisplay">1</div>
+        </div>
+        <div class="stat-box">
+          <h4>Mode</h4>
+          <div class="value" id="modeDisplay" style="font-size:1.2rem">Euler</div>
+        </div>
+        <div class="stat-box">
+          <h4>Path So Far</h4>
+          <div class="path-display" id="pathDisplay">-</div>
+        </div>
+        <div class="stat-box">
+          <h4>Edges Traversed</h4>
+          <div class="value" id="edgesUsed">0 / 0</div>
+        </div>
+        <div class="stat-box">
+          <h4>Vertex Degrees</h4>
+          <div class="degree-list" id="degreeList"></div>
+        </div>
+        <div class="stat-box">
+          <h4>Score</h4>
+          <div class="value" id="scoreDisplay">0</div>
+        </div>
+        <div class="theory-box">
+          <h4>Theory</h4>
+          <p id="theoryNote">A connected multigraph has an <strong>Euler cycle</strong> iff all vertices have even degree. It has an <strong>Euler trail</strong> (but no cycle) iff exactly 2 vertices have odd degree.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvas = document.getElementById('graphCanvas');
+    const ctx = canvas.getContext('2d');
+
+    let mode = 'euler'; // 'euler' or 'hamilton'
+    let currentLevel = 0;
+    let score = 0;
+    let vertices = [];
+    let edges = [];
+    let path = []; // vertex indices visited
+    let usedEdges = new Set(); // edge indices used
+
+    const eulerLevels = [
+      {
+        name: "Square with diagonals",
+        verts: [[150,150],[500,150],[500,400],[150,400]],
+        edges: [[0,1],[1,2],[2,3],[3,0],[0,2],[1,3]],
+        hasEulerCycle: true,
+        hasEulerTrail: true,
+        note: "All vertices have degree 4 (even). By Euler's theorem, this graph has an Euler cycle. Start anywhere and traverse all 6 edges, returning to start."
+      },
+      {
+        name: "House graph",
+        verts: [[325,80],[150,230],[500,230],[150,430],[500,430]],
+        edges: [[0,1],[0,2],[1,2],[1,3],[2,4],[3,4]],
+        hasEulerCycle: true,
+        hasEulerTrail: true,
+        note: "All vertices have even degree (check: 2,3→ wait, vertex 0 has degree 2, vertices 1,2 have degree 3... Actually vertices 1 and 2 have odd degree, so this has an Euler TRAIL from 1 to 2 (or vice versa), not a cycle."
+      },
+      {
+        name: "K4 complete graph",
+        verts: [[200,120],[480,120],[480,400],[200,400]],
+        edges: [[0,1],[0,2],[0,3],[1,2],[1,3],[2,3]],
+        hasEulerCycle: false,
+        hasEulerTrail: false,
+        note: "Every vertex has degree 3 (odd). With 4 odd-degree vertices, there is NO Euler trail or cycle! The Euler theorem requires 0 or exactly 2 odd-degree vertices."
+      },
+      {
+        name: "Königsberg-like",
+        verts: [[200,200],[400,100],[400,300],[600,200]],
+        edges: [[0,1],[0,1],[0,2],[0,2],[1,3],[2,3],[1,2]],
+        hasEulerCycle: true,
+        hasEulerTrail: true,
+        note: "This multigraph has parallel edges (two edges between 1-2 and two between 1-3). Degrees: v1=4, v2=4, v3=4, v4=2 — ALL even! By Euler's theorem an Euler cycle exists. (The original Königsberg bridge problem had odd-degree vertices and NO Euler cycle.)"
+      },
+      {
+        name: "Triangle with extension",
+        verts: [[250,150],[450,150],[350,350],[350,80]],
+        edges: [[0,1],[1,2],[2,0],[0,3],[1,3]],
+        hasEulerCycle: false,
+        hasEulerTrail: true,
+        note: "Vertices 0 and 1 have degree 3 (odd), vertices 2 and 3 have degree 2 (even). Exactly 2 odd-degree vertices → Euler trail exists from vertex 0 to vertex 1 (or vice versa). No Euler cycle."
+      },
+      {
+        name: "Butterfly graph",
+        verts: [[150,250],[350,100],[350,400],[550,100],[550,400]],
+        edges: [[0,1],[0,2],[1,2],[0,3],[0,4],[3,4]],
+        hasEulerCycle: false,
+        hasEulerTrail: false,
+        note: "Vertex 0 has degree 4, vertices 1,2 have degree 2, vertices 3,4 have degree 2. Wait — all even! This has an Euler cycle. Start at 0."
+      },
+      {
+        name: "Pentagon with star",
+        verts: [[350,60],[150,200],[230,420],[470,420],[550,200]],
+        edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[0,2],[0,3],[1,3],[1,4],[2,4]],
+        hasEulerCycle: true,
+        hasEulerTrail: true,
+        note: "All vertices have degree 4 (even). By Euler's theorem, an Euler cycle exists. This is actually the Petersen-like graph K₅ — all vertices have degree 4 with 10 edges."
+      }
+    ];
+
+    const hamiltonLevels = [
+      {
+        name: "Square C4",
+        verts: [[180,150],[500,150],[500,400],[180,400]],
+        edges: [[0,1],[1,2],[2,3],[3,0]],
+        hasHamilton: true,
+        note: "A circuit on n vertices always has a Hamilton circuit — it IS a Hamilton circuit! Just visit 1→2→3→4→1."
+      },
+      {
+        name: "Complete K5",
+        verts: [[340,60],[140,200],[210,430],[470,430],[540,200]],
+        edges: [[0,1],[0,2],[0,3],[0,4],[1,2],[1,3],[1,4],[2,3],[2,4],[3,4]],
+        hasHamilton: true,
+        note: "By Dirac's theorem: n=5 and every vertex has degree 4 ≥ n/2 = 2.5. So K₅ definitely has a Hamilton circuit. Every complete graph does!"
+      },
+      {
+        name: "Cube graph Q3",
+        verts: [[200,150],[420,150],[450,280],[230,280],[240,340],[460,340],[490,460],[270,460]],
+        edges: [[0,1],[1,2],[2,3],[3,0],[4,5],[5,6],[6,7],[7,4],[0,4],[1,5],[2,6],[3,7]],
+        hasHamilton: true,
+        note: "The 3-dimensional cube Q₃ has a Hamilton circuit. By Dirac's theorem (each vertex degree 3, n=8, 3 < 4=n/2), we can't guarantee it — but it exists! Try: 1→2→3→4→8→7→6→5→1."
+      },
+      {
+        name: "Petersen graph",
+        verts: [[340,40],[140,170],[200,400],[480,400],[540,170],[340,140],[240,240],[280,360],[400,360],[440,240]],
+        edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[5,6],[6,7],[7,8],[8,9],[9,5],[0,5],[1,6],[2,7],[3,8],[4,9]],
+        hasHamilton: false,
+        note: "The Petersen graph is famous for having NO Hamilton circuit! You can verify using the 3 rules from Tucker, or Grinberg's theorem (it's planar). Every attempt will fail."
+      },
+      {
+        name: "Bipartite K3,3 minus edge",
+        verts: [[180,130],[180,280],[180,430],[500,130],[500,280],[500,430]],
+        edges: [[0,3],[0,4],[0,5],[1,3],[1,4],[2,4],[2,5]],
+        hasHamilton: false,
+        note: "This bipartite graph has 3+3=6 vertices but only 7 edges. In a Hamilton circuit on 6 vertices, you need exactly 6 edges forming a single circuit. Try applying the three rules — vertex 2 has degree 2, so both its edges must be in the circuit..."
+      },
+      {
+        name: "Dodecahedron (simplified)",
+        verts: [[340,30],[170,120],[510,120],[120,280],[560,280],[170,420],[510,420],[340,480],[280,150],[400,150],[220,260],[460,260],[220,380],[460,380],[280,440],[400,440]],
+        edges: [[0,1],[0,2],[1,3],[2,4],[3,5],[4,6],[5,7],[6,7],[0,8],[0,9],[8,10],[9,11],[10,12],[11,13],[12,14],[13,15],[14,7],[15,7],[1,8],[2,9],[3,10],[4,11],[5,12],[6,13]],
+        hasHamilton: true,
+        note: "Hamilton himself studied this! A Hamilton circuit exists on the dodecahedron. This was actually the original 'Hamiltonian game' from 1859."
+      }
+    ];
+
+    function setMode(m) {
+      mode = m;
+      currentLevel = 0;
+      document.querySelectorAll('.mode-select button').forEach(b => b.classList.remove('active-mode'));
+      event.target.classList.add('active-mode');
+      document.getElementById('modeDisplay').textContent = mode === 'euler' ? 'Euler' : 'Hamilton';
+      loadLevel();
+    }
+
+    function getLevels() {
+      return mode === 'euler' ? eulerLevels : hamiltonLevels;
+    }
+
+    function loadLevel() {
+      const levels = getLevels();
+      const level = levels[currentLevel % levels.length];
+      vertices = level.verts.map(v => [...v]);
+      edges = level.edges.map(e => [...e]);
+      path = [];
+      usedEdges = new Set();
+
+      document.getElementById('levelDisplay').textContent = (currentLevel % levels.length) + 1;
+      document.getElementById('theoryNote').innerHTML = level.note;
+      document.getElementById('message').innerHTML = '';
+
+      // Show/hide the "No Euler" button in Euler mode
+      const noEulerBtn = document.getElementById('noEulerBtn');
+      if (mode === 'euler') {
+        noEulerBtn.style.display = 'inline-block';
+      } else {
+        noEulerBtn.style.display = 'none';
+      }
+
+      updatePathDisplay();
+      resizeCanvas();
+      computeDegrees();
+      draw();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width;
+      canvas.height = 500;
+      const levels = getLevels();
+      const level = levels[currentLevel % levels.length];
+      const maxX = Math.max(...level.verts.map(v => v[0]));
+      const maxY = Math.max(...level.verts.map(v => v[1]));
+      const scaleX = (canvas.width - 80) / maxX;
+      const scaleY = (canvas.height - 80) / maxY;
+      const scale = Math.min(scaleX, scaleY, 1.1);
+      const offsetX = (canvas.width - maxX * scale) / 2;
+      const offsetY = (canvas.height - maxY * scale) / 2;
+      vertices = level.verts.map(v => [v[0] * scale + offsetX, v[1] * scale + offsetY]);
+    }
+
+    function computeDegrees() {
+      const deg = new Array(vertices.length).fill(0);
+      edges.forEach(([a, b]) => { deg[a]++; deg[b]++; });
+      const list = document.getElementById('degreeList');
+      list.innerHTML = deg.map((d, i) => `v${i+1}: degree ${d}${d % 2 !== 0 ? ' <span style="color:#e74c3c">(odd)</span>' : ''}`).join('<br>');
+
+      // Show Euler analysis when in Euler mode
+      if (mode === 'euler') {
+        const oddCount = deg.filter(d => d % 2 !== 0).length;
+        let analysis = '<br><strong style="color:#f39c12">Euler Analysis:</strong><br>';
+        if (oddCount === 0) {
+          analysis += '<span style="color:#2ecc71">All vertices have even degree → Euler CYCLE exists! Start anywhere.</span>';
+        } else if (oddCount === 2) {
+          const oddVerts = deg.map((d, i) => d % 2 !== 0 ? i + 1 : -1).filter(x => x > 0);
+          analysis += `<span style="color:#3498db">Exactly 2 odd-degree vertices (v${oddVerts[0]}, v${oddVerts[1]}) → Euler TRAIL exists from v${oddVerts[0]} to v${oddVerts[1]}. No Euler cycle.</span>`;
+        } else {
+          analysis += `<span style="color:#e74c3c">${oddCount} vertices have odd degree → NO Euler cycle or trail exists! (Need 0 or exactly 2 odd-degree vertices.)</span>`;
+        }
+        list.innerHTML += analysis;
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw all edges
+      edges.forEach(([a, b], idx) => {
+        ctx.beginPath();
+        ctx.moveTo(vertices[a][0], vertices[a][1]);
+        ctx.lineTo(vertices[b][0], vertices[b][1]);
+        if (usedEdges.has(idx)) {
+          ctx.strokeStyle = '#2ecc71';
+          ctx.lineWidth = 4;
+        } else {
+          ctx.strokeStyle = '#4a5568';
+          ctx.lineWidth = 2;
+        }
+        ctx.stroke();
+      });
+
+      // Draw path arrows on used edges
+      if (path.length > 1) {
+        ctx.strokeStyle = '#2ecc71';
+        ctx.lineWidth = 3;
+        for (let i = 0; i < path.length - 1; i++) {
+          const a = path[i], b = path[i + 1];
+          const ax = vertices[a][0], ay = vertices[a][1];
+          const bx = vertices[b][0], by = vertices[b][1];
+          // Draw arrow head
+          const angle = Math.atan2(by - ay, bx - ax);
+          const dist = Math.sqrt((bx-ax)**2 + (by-ay)**2);
+          const headX = ax + (dist - 25) * Math.cos(angle);
+          const headY = ay + (dist - 25) * Math.sin(angle);
+          ctx.beginPath();
+          ctx.moveTo(headX, headY);
+          ctx.lineTo(headX - 10 * Math.cos(angle - 0.4), headY - 10 * Math.sin(angle - 0.4));
+          ctx.moveTo(headX, headY);
+          ctx.lineTo(headX - 10 * Math.cos(angle + 0.4), headY - 10 * Math.sin(angle + 0.4));
+          ctx.stroke();
+        }
+      }
+
+      // Draw vertices
+      vertices.forEach((v, i) => {
+        ctx.beginPath();
+        ctx.arc(v[0], v[1], 20, 0, Math.PI * 2);
+        if (path.length > 0 && path[path.length - 1] === i) {
+          ctx.fillStyle = '#2ecc71';
+        } else if (path.includes(i)) {
+          ctx.fillStyle = '#3498db';
+        } else {
+          ctx.fillStyle = '#2a3a5e';
+        }
+        ctx.fill();
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 13px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(i + 1, v[0], v[1]);
+      });
+
+      document.getElementById('edgesUsed').textContent = `${usedEdges.size} / ${edges.length}`;
+    }
+
+    canvas.addEventListener('click', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      for (let i = 0; i < vertices.length; i++) {
+        const dx = x - vertices[i][0];
+        const dy = y - vertices[i][1];
+        if (dx * dx + dy * dy < 20 * 20) {
+          handleVertexClick(i);
+          return;
+        }
+      }
+    });
+
+    canvas.addEventListener('contextmenu', (e) => {
+      e.preventDefault();
+      undoLast();
+    });
+
+    function handleVertexClick(vertexIdx) {
+      if (path.length === 0) {
+        path.push(vertexIdx);
+        updatePathDisplay();
+        draw();
+        return;
+      }
+
+      const last = path[path.length - 1];
+      if (vertexIdx === last) return;
+
+      // Check if there's an unused edge between last and vertexIdx
+      let edgeIdx = -1;
+      for (let i = 0; i < edges.length; i++) {
+        if (usedEdges.has(i)) continue;
+        const [a, b] = edges[i];
+        if ((a === last && b === vertexIdx) || (b === last && a === vertexIdx)) {
+          edgeIdx = i;
+          break;
+        }
+      }
+
+      if (edgeIdx === -1) {
+        showMessage('No unused edge between those vertices!', 'error');
+        return;
+      }
+
+      usedEdges.add(edgeIdx);
+      path.push(vertexIdx);
+      document.getElementById('message').innerHTML = '';
+      updatePathDisplay();
+      draw();
+    }
+
+    function undoLast() {
+      if (path.length <= 1) {
+        path = [];
+        usedEdges = new Set();
+      } else {
+        const removed = path.pop();
+        const current = path[path.length - 1];
+        // Find and remove the edge
+        for (let i = edges.length - 1; i >= 0; i--) {
+          if (!usedEdges.has(i)) continue;
+          const [a, b] = edges[i];
+          if ((a === current && b === removed) || (b === current && a === removed)) {
+            usedEdges.delete(i);
+            break;
+          }
+        }
+      }
+      document.getElementById('message').innerHTML = '';
+      updatePathDisplay();
+      draw();
+    }
+
+    function updatePathDisplay() {
+      const display = document.getElementById('pathDisplay');
+      if (path.length === 0) {
+        display.textContent = '(click a vertex to start)';
+      } else {
+        display.textContent = path.map(v => v + 1).join(' → ');
+      }
+    }
+
+    function checkPath() {
+      if (path.length < 2) {
+        showMessage('Build a path first by clicking vertices!', 'error');
+        return;
+      }
+
+      if (mode === 'euler') {
+        checkEuler();
+      } else {
+        checkHamilton();
+      }
+    }
+
+    function checkEuler() {
+      const totalEdges = edges.length;
+
+      // First check: does an Euler cycle/trail even exist?
+      const deg = new Array(vertices.length).fill(0);
+      edges.forEach(([a, b]) => { deg[a]++; deg[b]++; });
+      const oddCount = deg.filter(d => d % 2 !== 0).length;
+
+      if (oddCount > 2) {
+        // No Euler trail or cycle possible — reward the player for recognizing this
+        if (usedEdges.size === 0 && path.length <= 1) {
+          // Player didn't try — they're checking whether it exists
+          score += 10;
+          showMessage(`🎉 Correct! This graph has ${oddCount} odd-degree vertices, so NO Euler cycle or trail exists. By Euler's theorem, you need 0 odd-degree vertices (cycle) or exactly 2 (trail). +10 points`, 'success');
+          document.getElementById('scoreDisplay').textContent = score;
+          return;
+        } else {
+          showMessage(`This graph has ${oddCount} vertices of odd degree. By Euler's theorem (1736): a connected graph has an Euler cycle iff ALL vertices have even degree, and an Euler trail iff EXACTLY 2 vertices have odd degree. With ${oddCount} odd-degree vertices, neither exists! Click "Check" with an empty path to claim points for identifying this.`, 'error');
+          return;
+        }
+      }
+
+      if (usedEdges.size < totalEdges) {
+        showMessage(`You've only used ${usedEdges.size} of ${totalEdges} edges. An Euler trail/cycle must use ALL edges exactly once.`, 'error');
+        return;
+      }
+
+      // All edges used — check if it's a cycle or trail
+      const isCycle = path[0] === path[path.length - 1];
+
+      if (isCycle) {
+        score += 10;
+        showMessage(`🎉 Euler CYCLE found! You traversed all ${totalEdges} edges and returned to start.<br><br><strong>Why this works:</strong> Every vertex has even degree. This means that each time you enter a vertex, there's always an unused edge to leave by (edges come in enter/leave pairs). Since you can always continue, and the graph is finite, you must eventually return to where you started. This is the core insight of Euler's 1736 proof. +10 points`, 'success');
+      } else {
+        if (oddCount === 2) {
+          score += 8;
+          const oddVerts = deg.map((d, i) => d % 2 !== 0 ? i + 1 : -1).filter(x => x > 0);
+          showMessage(`✓ Euler TRAIL found! Traversed all ${totalEdges} edges from v${path[0]+1} to v${path[path.length-1]+1}.<br><br><strong>Why this works:</strong> Exactly 2 vertices have odd degree (v${oddVerts[0]}, v${oddVerts[1]}). These MUST be the endpoints because: at each intermediate vertex, edges pair up (enter/leave), so the degree must be even. Only the start and end can have one "unpaired" edge, giving them odd degree. +8 points`, 'success');
+        } else {
+          score += 10;
+          showMessage(`✓ You traversed all ${totalEdges} edges! Since all degrees are even, you CAN close this into a cycle — try returning to v${path[0]+1}. The even-degree property guarantees a way back always exists. +10 points`, 'success');
+        }
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function checkHamilton() {
+      const n = vertices.length;
+      const visited = new Set(path);
+
+      if (visited.size < n) {
+        const missing = [];
+        for (let i = 0; i < n; i++) {
+          if (!visited.has(i)) missing.push(i + 1);
+        }
+        showMessage(`You haven't visited all vertices yet. Missing: ${missing.join(', ')}`, 'error');
+        return;
+      }
+
+      // Check each vertex visited exactly once (except possibly first=last for circuit)
+      const isClosed = path[0] === path[path.length - 1];
+      const inner = isClosed ? path.slice(0, -1) : path;
+      const innerSet = new Set(inner);
+
+      if (innerSet.size !== inner.length) {
+        showMessage('A Hamilton circuit visits each vertex exactly once (no repeats except returning to start).', 'error');
+        return;
+      }
+
+      if (isClosed && innerSet.size === n) {
+        score += 10;
+        showMessage(`🎉 Hamilton CIRCUIT found! You visited all ${n} vertices exactly once and returned to start. +10 points`, 'success');
+      } else if (innerSet.size === n) {
+        score += 7;
+        showMessage(`✓ Hamilton PATH found! You visited all ${n} vertices. To make it a circuit, return to vertex ${path[0]+1}. +7 points`, 'success');
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function resetPath() {
+      path = [];
+      usedEdges = new Set();
+      document.getElementById('message').innerHTML = '';
+      updatePathDisplay();
+      draw();
+    }
+
+    function nextLevel() {
+      currentLevel++;
+      loadLevel();
+    }
+
+    function showMessage(text, type) {
+      document.getElementById('message').innerHTML = `<div class="message message-${type}">${text}</div>`;
+    }
+
+    function declareNoEuler() {
+      const deg = new Array(vertices.length).fill(0);
+      edges.forEach(([a, b]) => { deg[a]++; deg[b]++; });
+      const oddCount = deg.filter(d => d % 2 !== 0).length;
+
+      if (oddCount > 2 || oddCount === 1) {
+        score += 10;
+        showMessage(`🎉 Correct! This graph has ${oddCount} odd-degree vertices. By Euler's theorem: need 0 for a cycle, exactly 2 for a trail. With ${oddCount} odd-degree vertices, NEITHER exists. Well spotted! +10 points`, 'success');
+        document.getElementById('scoreDisplay').textContent = score;
+      } else if (oddCount === 2) {
+        showMessage(`Not quite! This graph has exactly 2 odd-degree vertices, so an Euler TRAIL does exist (just not a cycle). The trail must start and end at the two odd-degree vertices. Try finding it!`, 'error');
+      } else {
+        showMessage(`Not quite! All vertices have even degree, so an Euler CYCLE exists. Try finding it — start at any vertex!`, 'error');
+      }
+    }
+
+    // Init
+    loadLevel();
+    window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+</body>
+</html>

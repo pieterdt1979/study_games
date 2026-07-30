@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permutation Cycles - CS Study Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 280px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .question-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .question-box h3 { color: #667eea; margin-bottom: 1rem; font-size: 1.1rem; }
+    .problem { font-size: 1.1rem; line-height: 1.8; color: #eee; }
+    .perm-display { background: #1a1a2e; border-radius: 8px; padding: 1rem 1.5rem; margin: 1rem 0;
+      font-family: 'Courier New', monospace; font-size: 1.2rem; color: #f8c291; text-align: center;
+      border: 1px solid #2a3a5e; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1.5rem 0; }
+    @media (max-width: 600px) { .options { grid-template-columns: 1fr; } }
+    .option-btn { background: #1a1a2e; border: 2px solid #4a5568; border-radius: 8px;
+      padding: 1rem; color: #eee; font-size: 1rem; cursor: pointer; transition: all 0.2s;
+      text-align: center; font-family: 'Courier New', monospace; }
+    .option-btn:hover { border-color: #667eea; background: rgba(102,126,234,0.1); }
+    .option-btn.correct { border-color: #2ecc71; background: rgba(46,204,113,0.2); color: #2ecc71; }
+    .option-btn.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.2); color: #e74c3c; }
+    .option-btn[disabled] { cursor: default; }
+    .explanation { background: #1a2744; border-left: 4px solid #667eea; padding: 1rem 1.5rem;
+      border-radius: 0 8px 8px 0; margin-top: 1rem; display: none; line-height: 1.7; color: #ccc; }
+    .explanation.show { display: block; }
+    .sidebar { background: #16213e; border-radius: 12px; padding: 1.5rem; height: fit-content; }
+    .sidebar h4 { color: #667eea; margin-bottom: 1rem; }
+    .stat-row { display: flex; justify-content: space-between; padding: 0.5rem 0;
+      border-bottom: 1px solid #2a3a5e; color: #ccc; }
+    .btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-size: 1rem;
+      cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+    .btn-secondary { background: #2a3a5e; color: #ccc; }
+    .btn-secondary:hover { background: #3a4a6e; }
+    .progress-bar { background: #1a1a2e; border-radius: 8px; height: 8px; margin: 1rem 0; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 8px; transition: width 0.4s; }
+    .category-badge { display: inline-block; background: rgba(102,126,234,0.2); color: #667eea;
+      padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; margin-bottom: 0.5rem; }
+    .ref-box { background: #1a1a2e; border-radius: 8px; padding: 0.8rem; margin-top: 0.5rem;
+      font-size: 0.82rem; color: #aaa; line-height: 1.6; }
+    .ref-box code { color: #f8c291; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" style="color:#667eea;text-decoration:none;font-size:0.9rem;">← Back to Games</a>
+    <h1>Permutation Cycles</h1>
+    <p class="subtitle">MAT2612 — Cycle notation, compositions, transpositions & parity</p>
+
+    <div class="game-layout">
+      <div class="main-area">
+        <div class="question-box" id="questionBox">
+          <span class="category-badge" id="categoryBadge"></span>
+          <h3 id="questionTitle">Question 1 of 10</h3>
+          <div class="problem" id="problemText"></div>
+          <div class="perm-display" id="permDisplay" style="display:none;"></div>
+          <div class="options" id="optionsArea"></div>
+          <div class="explanation" id="explanation"></div>
+          <div style="margin-top:1.5rem;">
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Next Question →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <h4>Progress</h4>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="stat-row"><span>Question</span><span id="qNum">1 / 10</span></div>
+        <div class="stat-row"><span>Score</span><span id="score">0</span></div>
+        <div class="stat-row"><span>Streak</span><span id="streak">0 🔥</span></div>
+        <hr style="border-color:#2a3a5e; margin:1rem 0;">
+        <h4>Key Concepts</h4>
+        <div class="ref-box">
+          <div><code>(a b c)</code> means a→b→c→a</div>
+          <div>Disjoint cycles commute</div>
+          <div>A k-cycle = k−1 transpositions</div>
+          <div>Even: even # of transpositions</div>
+          <div>|A<sub>n</sub>| = n!/2</div>
+        </div>
+        <hr style="border-color:#2a3a5e; margin:1rem 0;">
+        <button class="btn btn-secondary" onclick="resetQuiz()" style="width:100%;">Restart</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Utility functions for permutation arithmetic
+    function applyPerm(perm, x) { return perm[x]; }
+    function composePerm(sigma, tau, n) {
+      // sigma ∘ tau: apply tau first, then sigma (right-to-left)
+      const result = {};
+      for (let i = 1; i <= n; i++) result[i] = sigma[tau[i]];
+      return result;
+    }
+    function permFromCycles(cycles, n) {
+      const p = {};
+      for (let i = 1; i <= n; i++) p[i] = i;
+      // apply cycles left to right (rightmost first in composition)
+      for (const cycle of cycles) {
+        for (let i = 0; i < cycle.length; i++) {
+          p[cycle[i]] = cycle[(i + 1) % cycle.length];
+        }
+      }
+      return p;
+    }
+    function permToCycles(perm, n) {
+      const visited = new Set();
+      const cycles = [];
+      for (let i = 1; i <= n; i++) {
+        if (visited.has(i)) continue;
+        const cycle = [];
+        let cur = i;
+        while (!visited.has(cur)) {
+          visited.add(cur);
+          cycle.push(cur);
+          cur = perm[cur];
+        }
+        if (cycle.length > 1) cycles.push(cycle);
+      }
+      return cycles;
+    }
+    function cyclesToString(cycles) {
+      if (cycles.length === 0) return '(identity)';
+      return cycles.map(c => '(' + c.join(' ') + ')').join('');
+    }
+    function permToArrayStr(perm, n) {
+      const top = [];
+      const bot = [];
+      for (let i = 1; i <= n; i++) { top.push(i); bot.push(perm[i]); }
+      return `(${top.join(' ')})\n(${bot.join(' ')})`;
+    }
+    function countTranspositions(cycles) {
+      let count = 0;
+      for (const c of cycles) count += c.length - 1;
+      return count;
+    }
+
+    // Question generators
+    function genCycleNotation() {
+      // Given array form, find cycle notation
+      const n = 5 + Math.floor(Math.random() * 3); // 5-7
+      const arr = [];
+      for (let i = 1; i <= n; i++) arr.push(i);
+      // shuffle
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      const perm = {};
+      for (let i = 0; i < n; i++) perm[i + 1] = arr[i];
+      // Make sure it's not identity
+      let isId = true;
+      for (let i = 1; i <= n; i++) if (perm[i] !== i) { isId = false; break; }
+      if (isId) { perm[1] = 2; perm[2] = 1; }
+
+      const cycles = permToCycles(perm, n);
+      const correctStr = cyclesToString(cycles);
+
+      // Generate wrong answers
+      const wrongs = new Set();
+      while (wrongs.size < 3) {
+        // Mess up one cycle element
+        const fakeCycles = JSON.parse(JSON.stringify(cycles));
+        if (fakeCycles.length > 0) {
+          const ci = Math.floor(Math.random() * fakeCycles.length);
+          const ei = Math.floor(Math.random() * fakeCycles[ci].length);
+          let newVal;
+          do { newVal = 1 + Math.floor(Math.random() * n); }
+          while (fakeCycles[ci].includes(newVal));
+          fakeCycles[ci][ei] = newVal;
+        }
+        const s = cyclesToString(fakeCycles);
+        if (s !== correctStr) wrongs.add(s);
+      }
+
+      const options = [...wrongs, correctStr];
+      // shuffle options
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+
+      const top = Array.from({length: n}, (_, i) => i + 1).join('  ');
+      const bot = Array.from({length: n}, (_, i) => perm[i + 1]).join('  ');
+
+      return {
+        category: "Cycle Notation",
+        text: `Write the following permutation in S<sub>${n}</sub> as a product of disjoint cycles:`,
+        display: `( ${top} )\n( ${bot} )`,
+        options,
+        answer: options.indexOf(correctStr),
+        explanation: `Starting from 1, follow the mappings to form cycles. Elements that map to themselves (fixed points) are omitted. The result is <strong>${correctStr}</strong>.`
+      };
+    }
+
+    function genComposition() {
+      const n = 4 + Math.floor(Math.random() * 2); // 4-5
+      // Create two random permutations via cycles
+      function randPerm() {
+        const arr = Array.from({length: n}, (_, i) => i + 1);
+        for (let i = arr.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [arr[i], arr[j]] = [arr[j], arr[i]];
+        }
+        const p = {};
+        for (let i = 0; i < n; i++) p[i + 1] = arr[i];
+        return p;
+      }
+      const sigma = randPerm();
+      const tau = randPerm();
+      // στ means sigma after tau (apply tau first)
+      const product = composePerm(sigma, tau, n);
+      const prodCycles = permToCycles(product, n);
+      const correctStr = cyclesToString(prodCycles);
+
+      const sigCycles = cyclesToString(permToCycles(sigma, n));
+      const tauCycles = cyclesToString(permToCycles(tau, n));
+
+      // Generate wrong options
+      const wrongs = new Set();
+      // τσ as a distractor
+      const rev = composePerm(tau, sigma, n);
+      const revStr = cyclesToString(permToCycles(rev, n));
+      if (revStr !== correctStr) wrongs.add(revStr);
+
+      while (wrongs.size < 3) {
+        const fake = randPerm();
+        const s = cyclesToString(permToCycles(fake, n));
+        if (s !== correctStr) wrongs.add(s);
+      }
+
+      const options = [[...wrongs][0], [...wrongs][1], [...wrongs][2], correctStr];
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+
+      return {
+        category: "Composition",
+        text: `In S<sub>${n}</sub>, compute the product <strong>στ</strong> (apply τ first, then σ).<br>σ = ${sigCycles}<br>τ = ${tauCycles}`,
+        display: null,
+        options,
+        answer: options.indexOf(correctStr),
+        explanation: `Apply τ first to each element, then apply σ to the result. For each i: (στ)(i) = σ(τ(i)). The product is <strong>${correctStr}</strong>.`
+      };
+    }
+
+    function genParity() {
+      const n = 5 + Math.floor(Math.random() * 4); // 5-8
+      const arr = Array.from({length: n}, (_, i) => i + 1);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      const perm = {};
+      for (let i = 0; i < n; i++) perm[i + 1] = arr[i];
+      let isId = true;
+      for (let i = 1; i <= n; i++) if (perm[i] !== i) { isId = false; break; }
+      if (isId) { perm[1] = 2; perm[2] = 1; }
+
+      const cycles = permToCycles(perm, n);
+      const numTrans = countTranspositions(cycles);
+      const isEven = numTrans % 2 === 0;
+      const cycStr = cyclesToString(cycles);
+
+      const options = ["Even", "Odd"];
+      const answer = isEven ? 0 : 1;
+
+      return {
+        category: "Even/Odd Parity",
+        text: `Is the permutation <strong>${cycStr}</strong> in S<sub>${n}</sub> even or odd?`,
+        display: null,
+        options,
+        answer,
+        explanation: `A k-cycle decomposes into k−1 transpositions. Cycle lengths: ${cycles.map(c => c.length).join(', ')}. Total transpositions: ${cycles.map(c => c.length - 1).join(' + ')} = ${numTrans}. Since ${numTrans} is ${isEven ? 'even' : 'odd'}, the permutation is <strong>${isEven ? 'even' : 'odd'}</strong>.`
+      };
+    }
+
+    function genTranspositions() {
+      // Express a cycle as a product of transpositions
+      const len = 3 + Math.floor(Math.random() * 3); // 3-5
+      const elems = [];
+      const used = new Set();
+      while (elems.length < len) {
+        const v = 1 + Math.floor(Math.random() * 8);
+        if (!used.has(v)) { elems.push(v); used.add(v); }
+      }
+      // Cycle (a1 a2 ... ak) = (a1 ak)(a1 ak-1)...(a1 a2)
+      const correct = [];
+      for (let i = len - 1; i >= 1; i--) {
+        correct.push(`(${elems[0]} ${elems[i]})`);
+      }
+      const correctStr = correct.join('');
+      const cycleStr = `(${elems.join(' ')})`;
+
+      // Generate wrong answers
+      const wrongs = new Set();
+      while (wrongs.size < 3) {
+        const fake = [];
+        const shuffled = [...elems];
+        for (let i = shuffled.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        }
+        for (let i = len - 1; i >= 1; i--) {
+          fake.push(`(${shuffled[0]} ${shuffled[i]})`);
+        }
+        const s = fake.join('');
+        if (s !== correctStr) wrongs.add(s);
+      }
+
+      const options = [[...wrongs][0], [...wrongs][1], [...wrongs][2], correctStr];
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+
+      return {
+        category: "Transpositions",
+        text: `Write the cycle <strong>${cycleStr}</strong> as a product of transpositions (using the first element method):`,
+        display: null,
+        options,
+        answer: options.indexOf(correctStr),
+        explanation: `For the cycle (a<sub>1</sub> a<sub>2</sub> ... a<sub>k</sub>), we write (a<sub>1</sub> a<sub>k</sub>)(a<sub>1</sub> a<sub>k-1</sub>)...(a<sub>1</sub> a<sub>2</sub>). Here: <strong>${correctStr}</strong>. This gives ${len - 1} transpositions.`
+      };
+    }
+
+    function genOrderAn() {
+      const ns = [3, 4, 5, 6, 7, 8];
+      const n = ns[Math.floor(Math.random() * ns.length)];
+      const answer_val = factorial(n) / 2;
+
+      function factorial(x) { let r = 1; for (let i = 2; i <= x; i++) r *= i; return r; }
+
+      // Generate options
+      const options = [
+        String(answer_val),
+        String(factorial(n)),
+        String(answer_val * 2 - 1),
+        String(Math.floor(answer_val / 2))
+      ];
+      // shuffle
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+
+      return {
+        category: "Alternating Group",
+        text: `What is the order of the alternating group A<sub>${n}</sub>?`,
+        display: null,
+        options,
+        answer: options.indexOf(String(answer_val)),
+        explanation: `|A<sub>${n}</sub>| = n!/2 = ${n}!/2 = ${factorial(n)}/2 = <strong>${answer_val}</strong>. The alternating group contains exactly half of all permutations (the even ones).`
+      };
+    }
+
+    function genImageUnderPerm() {
+      const n = 5 + Math.floor(Math.random() * 3);
+      const arr = Array.from({length: n}, (_, i) => i + 1);
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      const perm = {};
+      for (let i = 0; i < n; i++) perm[i + 1] = arr[i];
+      const cycles = permToCycles(perm, n);
+      const cycStr = cyclesToString(cycles);
+
+      const query = 1 + Math.floor(Math.random() * n);
+      const answer_val = perm[query];
+
+      const options = [];
+      const used = new Set([answer_val]);
+      options.push(String(answer_val));
+      while (options.length < 4) {
+        const v = 1 + Math.floor(Math.random() * n);
+        if (!used.has(v)) { options.push(String(v)); used.add(v); }
+      }
+      for (let i = options.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [options[i], options[j]] = [options[j], options[i]];
+      }
+
+      return {
+        category: "Reading Cycles",
+        text: `Given π = <strong>${cycStr}</strong> in S<sub>${n}</sub>, what is π(${query})?`,
+        display: null,
+        options,
+        answer: options.indexOf(String(answer_val)),
+        explanation: `Find ${query} in the cycle notation. Its image is the next element in that cycle. If ${query} is at the end of a cycle, it maps to the first element. If ${query} doesn't appear, it's a fixed point. π(${query}) = <strong>${answer_val}</strong>.`
+      };
+    }
+
+    // Build quiz
+    const generators = [genCycleNotation, genComposition, genParity, genTranspositions, genOrderAn, genImageUnderPerm];
+
+    let currentQ = 0, score = 0, streak = 0, answered = false;
+    let quizQuestions = [];
+
+    function buildQuiz() {
+      quizQuestions = [];
+      // Pick 10 questions with variety
+      const picks = [0, 0, 1, 1, 2, 2, 3, 4, 5, 5];
+      for (let i = picks.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [picks[i], picks[j]] = [picks[j], picks[i]];
+      }
+      for (const idx of picks) {
+        quizQuestions.push(generators[idx]());
+      }
+    }
+
+    function renderQuestion() {
+      const q = quizQuestions[currentQ];
+      document.getElementById('categoryBadge').textContent = q.category;
+      document.getElementById('questionTitle').textContent = `Question ${currentQ + 1} of ${quizQuestions.length}`;
+      document.getElementById('problemText').innerHTML = q.text;
+
+      const disp = document.getElementById('permDisplay');
+      if (q.display) { disp.textContent = q.display; disp.style.display = 'block'; }
+      else { disp.style.display = 'none'; }
+
+      document.getElementById('explanation').classList.remove('show');
+      document.getElementById('explanation').innerHTML = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      answered = false;
+
+      const optArea = document.getElementById('optionsArea');
+      optArea.innerHTML = '';
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => selectOption(i);
+        optArea.appendChild(btn);
+      });
+
+      document.getElementById('qNum').textContent = `${currentQ + 1} / ${quizQuestions.length}`;
+      document.getElementById('progressFill').style.width = `${(currentQ / quizQuestions.length) * 100}%`;
+      updateStats();
+    }
+
+    function selectOption(idx) {
+      if (answered) return;
+      answered = true;
+      const q = quizQuestions[currentQ];
+      const buttons = document.querySelectorAll('.option-btn');
+      buttons.forEach(b => b.setAttribute('disabled', true));
+
+      buttons[q.answer].classList.add('correct');
+      if (idx !== q.answer) {
+        buttons[idx].classList.add('wrong');
+        streak = 0;
+      } else {
+        score++;
+        streak++;
+      }
+
+      document.getElementById('explanation').innerHTML = `<strong>Explanation:</strong> ${q.explanation}`;
+      document.getElementById('explanation').classList.add('show');
+      document.getElementById('nextBtn').style.display = 'inline-block';
+      updateStats();
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ >= quizQuestions.length) { showResults(); return; }
+      renderQuestion();
+    }
+
+    function showResults() {
+      const pct = Math.round((score / quizQuestions.length) * 100);
+      const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+      document.getElementById('questionBox').innerHTML = `
+        <h3>${emoji} Quiz Complete!</h3>
+        <div class="problem">
+          <p>You scored <strong>${score}</strong> out of <strong>${quizQuestions.length}</strong> (${pct}%).</p>
+          <p style="margin-top:1rem;">${pct >= 80 ? 'Excellent! You have a strong understanding of symmetric groups and permutation cycles.' :
+            pct >= 60 ? 'Good work! Review cycle decomposition and the transposition method.' :
+            'Keep practicing! Focus on tracing elements through cycles and counting transpositions for parity.'}</p>
+        </div>
+        <button class="btn btn-primary" onclick="resetQuiz()" style="margin-top:1.5rem;">Try Again</button>
+      `;
+      document.getElementById('progressFill').style.width = '100%';
+    }
+
+    function updateStats() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('streak').textContent = `${streak} 🔥`;
+    }
+
+    function resetQuiz() {
+      currentQ = 0; score = 0; streak = 0; answered = false;
+      buildQuiz();
+      renderQuestion();
+    }
+
+    buildQuiz();
+    renderQuestion();
+  </script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Circle-Chord Trainer - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .canvas-wrap { background: #16213e; border-radius: 12px; padding: 1rem; text-align: center; }
+    canvas { width: 100%; height: 450px; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.6rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .chord-list { font-size: 0.85rem; color: #bbb; line-height: 1.8; max-height: 150px; overflow-y: auto; }
+    .chord-item { padding: 0.2rem 0.4rem; border-radius: 4px; margin: 2px 0; }
+    .chord-item.inside { background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .chord-item.outside { background: rgba(52,152,219,0.15); color: #3498db; }
+    .chord-item.conflict { background: rgba(231,76,60,0.15); color: #e74c3c; }
+    .place-btns { display: flex; gap: 0.5rem; margin: 0.75rem 0; justify-content: center; }
+    .place-btns button { padding: 0.5rem 1.2rem; }
+    .step-display { color: #f39c12; font-size: 0.9rem; margin: 0.5rem 0; min-height: 1.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>⭕ Circle-Chord Trainer</h2>
+    </div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>The <strong>circle-chord method</strong> proves a graph is non-planar. Steps: (1) Find a Hamilton circuit and draw it as a circle. (2) The remaining edges become <strong>chords</strong>. (3) Place each chord <strong>inside</strong> or <strong>outside</strong> the circle. (4) If two chords on the same side cross, they <strong>conflict</strong>. If ALL placements lead to conflict, the graph is non-planar!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="canvas-wrap">
+          <canvas id="circleCanvas"></canvas>
+          <div class="step-display" id="stepDisplay">Select a chord to place</div>
+          <div class="place-btns">
+            <button class="btn btn-success" onclick="placeChord('inside')">Place Inside</button>
+            <button class="btn btn-primary" onclick="placeChord('outside')">Place Outside</button>
+            <button class="btn btn-secondary" onclick="undoLast()">Undo</button>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn btn-danger" onclick="declareNonPlanar()">Proven Non-Planar!</button>
+          <button class="btn btn-secondary" onclick="resetLevel()">Reset</button>
+          <button class="btn btn-secondary" onclick="nextLevel()">Next Graph</button>
+        </div>
+        <div id="message"></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Graph</h4><div class="value" id="graphName" style="font-size:1.1rem">K₅</div></div>
+        <div class="stat-box"><h4>Score</h4><div class="value" id="scoreDisplay">0</div></div>
+        <div class="stat-box">
+          <h4>Chords Placed</h4>
+          <div class="chord-list" id="chordList"></div>
+        </div>
+        <div class="stat-box">
+          <h4>Conflicts</h4>
+          <div class="value" id="conflictCount" style="color:#e74c3c">0</div>
+        </div>
+        <div class="theory-box">
+          <h4>Circle-Chord Method</h4>
+          <p id="theoryNote">1. Draw Hamilton circuit as circle<br>
+          2. Remaining edges are chords<br>
+          3. Two chords <strong>conflict</strong> if placed on same side AND their endpoints alternate on the circle (they must cross)<br>
+          4. Chord ab and cd conflict on the same side iff their endpoints appear in order a...c...b...d around the circle<br>
+          5. If no valid placement exists → NON-PLANAR</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    const canvas = document.getElementById('circleCanvas');
+    const ctx = canvas.getContext('2d');
+    let score = 0, levelIdx = 0;
+    let hamCircuit = []; // vertex order around circle
+    let chords = []; // {a, b, placement: null|'inside'|'outside'}
+    let currentChordIdx = -1;
+    let cx, cy, radius;
+
+    const levels = [
+      { name: "K₅", n: 5, circuit: [0,1,2,3,4],
+        allEdges: [[0,1],[1,2],[2,3],[3,4],[4,0],[0,2],[0,3],[1,3],[1,4],[2,4]],
+        note: "K₅ has 10 edges. The Hamilton circuit uses 5, leaving 5 chords. Try placing them — you'll always get a conflict! This proves K₅ is non-planar." },
+      { name: "K₃,₃", n: 6, circuit: [0,3,1,4,2,5],
+        allEdges: [[0,3],[0,4],[0,5],[1,3],[1,4],[1,5],[2,3],[2,4],[2,5]],
+        note: "K₃,₃ has 9 edges. A Hamilton circuit uses 6, leaving 3 chords. Even with just 3 chords, every placement creates a conflict! K₃,₃ is non-planar." },
+      { name: "Petersen", n: 10, circuit: [0,1,2,3,4,9,6,8,5,7],
+        allEdges: [[0,1],[1,2],[2,3],[3,4],[4,0],[5,7],[7,9],[9,6],[6,8],[8,5],[0,5],[1,6],[2,7],[3,8],[4,9]],
+        note: "The Petersen graph has 15 edges. Its Hamilton circuit uses 10, leaving 5 chords. The circle-chord method shows it's non-planar (it contains a K₃,₃ configuration)." },
+      { name: "K₄ (planar!)", n: 4, circuit: [0,1,2,3],
+        allEdges: [[0,1],[1,2],[2,3],[3,0],[0,2],[1,3]],
+        note: "K₄ is actually PLANAR! With only 2 chords, you CAN place them without conflict (one inside, one outside). This graph serves as contrast — not every graph fails the test." },
+    ];
+
+    function loadLevel() {
+      const level = levels[levelIdx % levels.length];
+      hamCircuit = level.circuit;
+      document.getElementById('graphName').textContent = level.name;
+      document.getElementById('theoryNote').innerHTML = level.note;
+      document.getElementById('message').innerHTML = '';
+
+      // Find chords (edges not in the Hamilton circuit)
+      const circuitEdges = new Set();
+      for (let i = 0; i < hamCircuit.length; i++) {
+        const a = hamCircuit[i], b = hamCircuit[(i+1) % hamCircuit.length];
+        circuitEdges.add(`${Math.min(a,b)},${Math.max(a,b)}`);
+      }
+      chords = [];
+      for (const [a, b] of level.allEdges) {
+        const key = `${Math.min(a,b)},${Math.max(a,b)}`;
+        if (!circuitEdges.has(key)) {
+          chords.push({ a, b, placement: null });
+        }
+      }
+      currentChordIdx = chords.length > 0 ? 0 : -1;
+      updateDisplay();
+      resizeCanvas();
+      draw();
+    }
+
+    function resizeCanvas() {
+      const rect = canvas.parentElement.getBoundingClientRect();
+      canvas.width = rect.width - 32;
+      canvas.height = 450;
+      cx = canvas.width / 2;
+      cy = canvas.height / 2;
+      radius = Math.min(cx, cy) - 50;
+    }
+
+    function getVertexPos(vertexIdx) {
+      const circPos = hamCircuit.indexOf(vertexIdx);
+      const angle = (2 * Math.PI * circPos / hamCircuit.length) - Math.PI / 2;
+      return { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const n = hamCircuit.length;
+
+      // Draw circle
+      ctx.beginPath();
+      ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+      ctx.strokeStyle = '#4a5568';
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      // Draw Hamilton circuit edges
+      for (let i = 0; i < n; i++) {
+        const p1 = getVertexPos(hamCircuit[i]);
+        const p2 = getVertexPos(hamCircuit[(i+1) % n]);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = '#4a5568'; ctx.lineWidth = 2; ctx.stroke();
+      }
+
+      // Draw placed chords
+      chords.forEach((chord, idx) => {
+        if (!chord.placement) return;
+        drawChord(chord, idx);
+      });
+
+      // Highlight current chord to place
+      if (currentChordIdx >= 0 && currentChordIdx < chords.length && !chords[currentChordIdx].placement) {
+        const c = chords[currentChordIdx];
+        const p1 = getVertexPos(c.a), p2 = getVertexPos(c.b);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y);
+        ctx.strokeStyle = '#f39c12'; ctx.lineWidth = 3;
+        ctx.setLineDash([6, 4]); ctx.stroke(); ctx.setLineDash([]);
+      }
+
+      // Draw vertices
+      for (let i = 0; i < n; i++) {
+        const pos = getVertexPos(hamCircuit[i]);
+        ctx.beginPath(); ctx.arc(pos.x, pos.y, 16, 0, Math.PI * 2);
+        ctx.fillStyle = '#2a3a5e'; ctx.fill();
+        ctx.strokeStyle = '#667eea'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 11px sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(hamCircuit[i] + 1, pos.x, pos.y);
+      }
+    }
+
+    function drawChord(chord, idx) {
+      const p1 = getVertexPos(chord.a), p2 = getVertexPos(chord.b);
+      const isConflict = hasConflict(idx);
+
+      if (chord.placement === 'inside') {
+        // Draw as curved line inside
+        const midAngle = getMidAngle(chord.a, chord.b);
+        const cpx = cx + (radius * 0.4) * Math.cos(midAngle);
+        const cpy = cy + (radius * 0.4) * Math.sin(midAngle);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y);
+        ctx.quadraticCurveTo(cpx, cpy, p2.x, p2.y);
+        ctx.strokeStyle = isConflict ? '#e74c3c' : '#2ecc71';
+        ctx.lineWidth = 2.5; ctx.stroke();
+      } else {
+        // Draw as curved line outside
+        const midAngle = getMidAngle(chord.a, chord.b);
+        const cpx = cx + (radius * 1.5) * Math.cos(midAngle);
+        const cpy = cy + (radius * 1.5) * Math.sin(midAngle);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y);
+        ctx.quadraticCurveTo(cpx, cpy, p2.x, p2.y);
+        ctx.strokeStyle = isConflict ? '#e74c3c' : '#3498db';
+        ctx.lineWidth = 2.5; ctx.stroke();
+      }
+    }
+
+    function getMidAngle(a, b) {
+      const posA = hamCircuit.indexOf(a);
+      const posB = hamCircuit.indexOf(b);
+      const n = hamCircuit.length;
+      const angleA = (2 * Math.PI * posA / n) - Math.PI / 2;
+      const angleB = (2 * Math.PI * posB / n) - Math.PI / 2;
+      // Average angle (short arc)
+      let diff = angleB - angleA;
+      if (diff > Math.PI) diff -= 2 * Math.PI;
+      if (diff < -Math.PI) diff += 2 * Math.PI;
+      return angleA + diff / 2;
+    }
+
+    function chordsConflict(i, j) {
+      // Two chords conflict if same side AND endpoints interleave on the circle
+      if (chords[i].placement !== chords[j].placement) return false;
+      if (!chords[i].placement || !chords[j].placement) return false;
+
+      const n = hamCircuit.length;
+      const posA = hamCircuit.indexOf(chords[i].a);
+      const posB = hamCircuit.indexOf(chords[i].b);
+      const posC = hamCircuit.indexOf(chords[j].a);
+      const posD = hamCircuit.indexOf(chords[j].b);
+
+      // Normalize: ensure posA < posB and posC < posD
+      let a = Math.min(posA, posB), b = Math.max(posA, posB);
+      let c = Math.min(posC, posD), d = Math.max(posC, posD);
+
+      // Chords interleave iff one has an endpoint between the other's endpoints
+      // (a < c < b < d) or (c < a < d < b)
+      return (a < c && c < b && b < d) || (c < a && a < d && d < b);
+    }
+
+    function hasConflict(idx) {
+      for (let j = 0; j < chords.length; j++) {
+        if (j === idx) continue;
+        if (chordsConflict(idx, j)) return true;
+      }
+      return false;
+    }
+
+    function countConflicts() {
+      let count = 0;
+      for (let i = 0; i < chords.length; i++) {
+        for (let j = i + 1; j < chords.length; j++) {
+          if (chordsConflict(i, j)) count++;
+        }
+      }
+      return count;
+    }
+
+    function placeChord(side) {
+      if (currentChordIdx < 0 || currentChordIdx >= chords.length) return;
+      if (chords[currentChordIdx].placement) return;
+
+      chords[currentChordIdx].placement = side;
+      // Advance to next unplaced chord
+      advanceToNext();
+      updateDisplay();
+      draw();
+    }
+
+    function advanceToNext() {
+      for (let i = 0; i < chords.length; i++) {
+        if (!chords[i].placement) { currentChordIdx = i; return; }
+      }
+      currentChordIdx = -1; // all placed
+    }
+
+    function undoLast() {
+      // Find last placed chord and undo it
+      for (let i = chords.length - 1; i >= 0; i--) {
+        if (chords[i].placement) {
+          chords[i].placement = null;
+          currentChordIdx = i;
+          updateDisplay();
+          draw();
+          return;
+        }
+      }
+    }
+
+    function updateDisplay() {
+      const conflicts = countConflicts();
+      document.getElementById('conflictCount').textContent = conflicts;
+
+      // Step display
+      if (currentChordIdx >= 0 && currentChordIdx < chords.length && !chords[currentChordIdx].placement) {
+        const c = chords[currentChordIdx];
+        document.getElementById('stepDisplay').textContent =
+          `Place chord ${c.a+1}—${c.b+1} (dashed orange): Inside or Outside?`;
+      } else if (chords.every(c => c.placement)) {
+        document.getElementById('stepDisplay').textContent =
+          conflicts > 0 ? `All chords placed — ${conflicts} conflict(s)! Try different placement or declare non-planar.` : 'All chords placed with no conflicts! The graph might be planar.';
+      } else {
+        document.getElementById('stepDisplay').textContent = 'Select next chord to place.';
+      }
+
+      // Chord list
+      const list = document.getElementById('chordList');
+      list.innerHTML = chords.map((c, i) => {
+        const conf = c.placement && hasConflict(i);
+        const cls = !c.placement ? '' : conf ? 'conflict' : c.placement;
+        const label = !c.placement ? '(unplaced)' : c.placement + (conf ? ' ✗ CONFLICT' : ' ✓');
+        return `<div class="chord-item ${cls}">${c.a+1}—${c.b+1}: ${label}</div>`;
+      }).join('');
+    }
+
+    function declareNonPlanar() {
+      const level = levels[levelIdx % levels.length];
+      // Check if the graph is actually non-planar
+      if (level.name === "K₄ (planar!)") {
+        showMessage("Incorrect! K₄ IS planar. You can place chord 1-3 inside and chord 2-4 outside (or vice versa) without conflict.", 'error');
+        return;
+      }
+      // Check that they've demonstrated a conflict
+      const conflicts = countConflicts();
+      if (conflicts > 0) {
+        score += 10;
+        showMessage(`🎉 Correct! You've shown that placing chords leads to unavoidable conflicts. Since EVERY possible placement causes crossings, ${level.name} is NON-PLANAR by the circle-chord method. +10 points`, 'success');
+      } else if (chords.every(c => c.placement)) {
+        showMessage("You placed all chords without conflict — that means you haven't proven non-planarity yet! Try a different arrangement, or this graph might be planar.", 'error');
+      } else {
+        // Even if not all placed, if current partial assignment already forces conflicts in all completions
+        score += 8;
+        showMessage(`The graph IS non-planar. For a complete proof, show that ALL placements lead to conflicts. You've shown ${conflicts} conflict(s) so far. +8 points`, 'info');
+      }
+      document.getElementById('scoreDisplay').textContent = score;
+    }
+
+    function resetLevel() {
+      chords.forEach(c => c.placement = null);
+      currentChordIdx = 0;
+      document.getElementById('message').innerHTML = '';
+      updateDisplay();
+      draw();
+    }
+
+    function nextLevel() { levelIdx++; loadLevel(); }
+    function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
+
+    resizeCanvas();
+    loadLevel();
+    window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+</body>
+</html>

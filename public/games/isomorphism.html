@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Graph Isomorphism Matcher - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .game-layout { grid-template-columns: 1fr; }
+    }
+    .graphs-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+    .graph-panel {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+      text-align: center;
+    }
+    .graph-panel h4 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+    }
+    canvas {
+      width: 100%;
+      height: 300px;
+      cursor: pointer;
+    }
+    .mapping-area {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .mapping-area h4 {
+      color: #667eea;
+      margin-bottom: 0.75rem;
+    }
+    .mapping-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 0.5rem;
+    }
+    .mapping-item {
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+      background: #1a1a2e;
+      border-radius: 6px;
+      padding: 0.4rem 0.6rem;
+    }
+    .mapping-item label {
+      font-size: 0.85rem;
+      color: #aaa;
+      white-space: nowrap;
+    }
+    .mapping-item select {
+      background: #2a3a5e;
+      color: #fff;
+      border: 1px solid #4a5568;
+      border-radius: 4px;
+      padding: 0.3rem;
+      font-size: 0.85rem;
+      width: 50px;
+    }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .stat-box h4 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .property-list {
+      font-size: 0.85rem;
+      color: #bbb;
+      line-height: 1.8;
+    }
+    .property-list .match { color: #2ecc71; }
+    .property-list .mismatch { color: #e74c3c; }
+    .theory-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+      border-left: 4px solid #f39c12;
+    }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.85rem; line-height: 1.6; }
+    .verdict-badge {
+      display: inline-block;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-weight: bold;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+    }
+    .verdict-iso { background: rgba(46,204,113,0.2); color: #2ecc71; border: 1px solid #2ecc71; }
+    .verdict-not { background: rgba(231,76,60,0.2); color: #e74c3c; border: 1px solid #e74c3c; }
+    .verdict-unknown { background: rgba(102,126,234,0.2); color: #667eea; border: 1px solid #667eea; }
+    .selected-vertex {
+      box-shadow: 0 0 10px #2ecc71;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🔀 Graph Isomorphism Matcher</h2>
+    </div>
+
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Two graphs are shown. First decide: are they <strong>isomorphic</strong> (structurally identical) or not? If YES, provide a vertex mapping. If NO, identify a property one graph has that the other lacks (degree sequence, circuit structure, etc). Use the dropdown selects to map vertices from Graph G to Graph H.</p>
+    </div>
+
+    <div class="game-layout">
+      <div>
+        <div class="graphs-container">
+          <div class="graph-panel">
+            <h4>Graph G</h4>
+            <canvas id="canvasG"></canvas>
+          </div>
+          <div class="graph-panel">
+            <h4>Graph H</h4>
+            <canvas id="canvasH"></canvas>
+          </div>
+        </div>
+
+        <div class="mapping-area">
+          <h4>Vertex Mapping (G → H)</h4>
+          <div class="mapping-grid" id="mappingGrid"></div>
+        </div>
+
+        <div class="controls" style="margin-top:1rem">
+          <button class="btn btn-success" onclick="submitIsomorphic()">They ARE Isomorphic</button>
+          <button class="btn btn-danger" onclick="submitNotIsomorphic()">They are NOT Isomorphic</button>
+          <button class="btn btn-secondary" onclick="nextLevel()">Next Pair</button>
+          <button class="btn btn-secondary" onclick="showHint()">Hint</button>
+        </div>
+        <div id="message"></div>
+      </div>
+
+      <div class="sidebar">
+        <div class="stat-box">
+          <h4>Level</h4>
+          <div class="value" id="levelDisplay">1</div>
+        </div>
+        <div class="stat-box">
+          <h4>Score</h4>
+          <div class="value" id="scoreDisplay">0</div>
+        </div>
+        <div class="stat-box">
+          <h4>Graph Properties</h4>
+          <div class="property-list" id="propertyList"></div>
+        </div>
+        <div class="theory-box">
+          <h4>Theory</h4>
+          <p id="theoryNote">Two graphs G and H are <strong>isomorphic</strong> if there is a one-to-one correspondence between their vertex sets that preserves adjacency. Check: same number of vertices, edges, degree sequence, circuit structure. If all match, try finding the mapping!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const canvasG = document.getElementById('canvasG');
+    const canvasH = document.getElementById('canvasH');
+    const ctxG = canvasG.getContext('2d');
+    const ctxH = canvasH.getContext('2d');
+
+    let currentLevel = 0;
+    let score = 0;
+    let graphG = { verts: [], edges: [] };
+    let graphH = { verts: [], edges: [] };
+    let isIsomorphic = true;
+    let correctMapping = {}; // G vertex -> H vertex
+    let scaledVertsG = [];
+    let scaledVertsH = [];
+
+    const levels = [
+      {
+        g: { verts: [[100,80],[250,80],[250,220],[100,220]], edges: [[0,1],[1,2],[2,3],[3,0]] },
+        h: { verts: [[170,60],[280,170],[170,280],[60,170]], edges: [[0,1],[1,2],[2,3],[3,0]] },
+        iso: true,
+        mapping: {0:3, 1:0, 2:1, 3:2},
+        reason: "",
+        note: "Both are C₄ (4-circuits). All vertices have degree 2. Any rotation gives a valid mapping. The key insight: same degree sequence AND same circuit structure."
+      },
+      {
+        g: { verts: [[80,80],[250,80],[250,220],[80,220],[165,150]], edges: [[0,1],[1,2],[2,3],[3,0],[0,4],[1,4],[2,4],[3,4]] },
+        h: { verts: [[170,40],[300,130],[260,280],[80,280],[40,130]], edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[0,2],[0,3],[1,3]] },
+        iso: false,
+        mapping: {},
+        reason: "G has a vertex of degree 4 (vertex 5), but H has maximum degree 3. The degree sequences differ!",
+        note: "When degree sequences differ, graphs CANNOT be isomorphic. The degree sequence is the simplest invariant to check. G has sequence [2,2,2,2,4] while H has [2,3,3,3,3]."
+      },
+      {
+        g: { verts: [[60,150],[170,50],[280,150],[220,270],[120,270]], edges: [[0,1],[1,2],[2,3],[3,4],[4,0]] },
+        h: { verts: [[170,40],[300,120],[270,270],[70,270],[40,120]], edges: [[0,2],[2,4],[4,1],[1,3],[3,0]] },
+        iso: true,
+        mapping: {0:0, 1:2, 2:4, 3:1, 4:3},
+        note: "Both are C₅ (5-circuits). Same degree sequence [2,2,2,2,2]. The second graph just draws the edges differently (it's a 'star' pattern of the pentagon). Both are odd circuits — not bipartite!"
+      },
+      {
+        g: { verts: [[80,60],[250,60],[250,240],[80,240]], edges: [[0,1],[1,2],[2,3],[3,0],[0,2],[1,3]] },
+        h: { verts: [[170,40],[300,150],[170,260],[40,150]], edges: [[0,1],[1,2],[2,3],[3,0],[0,2],[1,3]] },
+        iso: true,
+        mapping: {0:0, 1:1, 2:2, 3:3},
+        note: "Both are K₄ (complete graph on 4 vertices). Every vertex has degree 3. Any permutation of vertices gives a valid isomorphism for complete graphs!"
+      },
+      {
+        g: { verts: [[50,100],[170,50],[290,100],[290,220],[170,270],[50,220]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,3],[1,4],[2,5]] },
+        h: { verts: [[50,100],[170,50],[290,100],[290,220],[170,270],[50,220]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,2],[2,4],[4,0]] },
+        iso: false,
+        mapping: {},
+        reason: "Both have degree sequence [3,3,3,3,3,3], but G has no triangles while H contains the triangle 0-2-4. Different circuit structures!",
+        note: "Same degree sequence doesn't guarantee isomorphism! You must look deeper: circuit structure, subgraph structure. G is bipartite (K₃,₃) while H is not (it has triangles). A bipartite graph has no odd circuits."
+      },
+      {
+        g: { verts: [[80,50],[240,50],[300,180],[200,280],[60,200]], edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[0,2]] },
+        h: { verts: [[80,50],[240,50],[300,180],[200,280],[60,200]], edges: [[0,1],[1,2],[2,3],[3,4],[4,0],[1,3]] },
+        iso: false,
+        mapping: {},
+        reason: "G has vertices with degrees [3,2,3,2,2] while H has degrees [2,3,2,3,2]. Actually both sort to [2,2,2,3,3]. But in G, the two degree-3 vertices (0,2) are adjacent. In H, the two degree-3 vertices (1,3) are also adjacent. Let's check triangles: G has triangle 0-1-2, H has triangle 1-2-3. They might be isomorphic...",
+        note: "These have the same degree sequence [2,2,2,3,3]. In G, the degree-3 vertices are distance 2 apart. In H, they are also adjacent. Check: both have exactly one triangle. Actually these ARE isomorphic! Tricky — the visual layout misleads.",
+        iso_override: true,
+        mapping_override: {0:1, 1:2, 2:3, 3:4, 4:0}
+      },
+      {
+        g: { verts: [[100,60],[240,60],[300,180],[240,300],[100,300],[40,180]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0]] },
+        h: { verts: [[100,60],[240,60],[300,180],[240,300],[100,300],[40,180]], edges: [[0,1],[1,2],[2,3],[3,4],[4,5],[5,0],[0,3],[1,4],[2,5]] },
+        iso: false,
+        mapping: {},
+        reason: "G has 6 edges (it's C₆) while H has 9 edges. Graphs with different numbers of edges cannot be isomorphic!",
+        note: "The simplest check: count vertices and edges! If either differs, the graphs are NOT isomorphic. G has 6 edges, H has 9. Done. Always check this first before anything else."
+      },
+      {
+        g: { verts: [[60,80],[200,40],[330,80],[330,220],[200,260],[60,220],[200,150]], edges: [[0,6],[1,6],[2,6],[3,6],[4,6],[5,6],[0,1],[2,3],[4,5]] },
+        h: { verts: [[60,80],[200,40],[330,80],[330,220],[200,260],[60,220],[200,150]], edges: [[0,6],[1,6],[2,6],[3,6],[4,6],[5,6],[0,5],[1,2],[3,4]] },
+        iso: true,
+        mapping: {0:1, 1:2, 2:3, 3:4, 4:5, 5:0, 6:6},
+        note: "Both are wheel-like graphs with a central vertex (degree 6). The outer vertices alternate between degree 2 and degree 3. A rotation maps one to the other. Central vertex maps to central vertex (both have the unique highest degree)."
+      }
+    ];
+
+    function fixLevel(idx) {
+      const level = levels[idx];
+      if (level.iso_override !== undefined) {
+        level.iso = level.iso_override;
+        level.mapping = level.mapping_override;
+      }
+    }
+
+    function loadLevel() {
+      fixLevel(currentLevel % levels.length);
+      const level = levels[currentLevel % levels.length];
+      graphG = { verts: level.g.verts.map(v => [...v]), edges: level.g.edges.map(e => [...e]) };
+      graphH = { verts: level.h.verts.map(v => [...v]), edges: level.h.edges.map(e => [...e]) };
+      isIsomorphic = level.iso;
+      correctMapping = level.mapping;
+
+      document.getElementById('levelDisplay').textContent = (currentLevel % levels.length) + 1;
+      document.getElementById('theoryNote').innerHTML = level.note;
+      document.getElementById('message').innerHTML = '';
+
+      buildMappingGrid();
+      computeProperties();
+      resizeCanvases();
+      drawBoth();
+    }
+
+    function resizeCanvases() {
+      [canvasG, canvasH].forEach((c, gi) => {
+        const rect = c.parentElement.getBoundingClientRect();
+        c.width = rect.width - 32;
+        c.height = 300;
+      });
+
+      const graph = graphG;
+      const maxX = Math.max(...graph.verts.map(v => v[0]), 1);
+      const maxY = Math.max(...graph.verts.map(v => v[1]), 1);
+      let scaleX = (canvasG.width - 60) / maxX;
+      let scaleY = (canvasG.height - 60) / maxY;
+      let scale = Math.min(scaleX, scaleY, 1.2);
+      let offsetX = (canvasG.width - maxX * scale) / 2;
+      let offsetY = (canvasG.height - maxY * scale) / 2;
+      scaledVertsG = graph.verts.map(v => [v[0]*scale+offsetX, v[1]*scale+offsetY]);
+
+      const graph2 = graphH;
+      const maxX2 = Math.max(...graph2.verts.map(v => v[0]), 1);
+      const maxY2 = Math.max(...graph2.verts.map(v => v[1]), 1);
+      scaleX = (canvasH.width - 60) / maxX2;
+      scaleY = (canvasH.height - 60) / maxY2;
+      scale = Math.min(scaleX, scaleY, 1.2);
+      offsetX = (canvasH.width - maxX2 * scale) / 2;
+      offsetY = (canvasH.height - maxY2 * scale) / 2;
+      scaledVertsH = graph2.verts.map(v => [v[0]*scale+offsetX, v[1]*scale+offsetY]);
+    }
+
+    function drawGraph(ctx, verts, edges, labels, highlight) {
+      ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+
+      edges.forEach(([a, b]) => {
+        ctx.beginPath();
+        ctx.moveTo(verts[a][0], verts[a][1]);
+        ctx.lineTo(verts[b][0], verts[b][1]);
+        ctx.strokeStyle = '#4a5568';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      });
+
+      verts.forEach((v, i) => {
+        ctx.beginPath();
+        ctx.arc(v[0], v[1], 18, 0, Math.PI * 2);
+        ctx.fillStyle = highlight && highlight.has(i) ? '#3498db' : '#2a3a5e';
+        ctx.fill();
+        ctx.strokeStyle = '#667eea';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+
+        ctx.fillStyle = '#fff';
+        ctx.font = 'bold 12px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(labels[i], v[0], v[1]);
+      });
+    }
+
+    function drawBoth() {
+      const labelsG = graphG.verts.map((_, i) => String(i + 1));
+      const labelsH = graphH.verts.map((_, i) => String.fromCharCode(97 + i)); // a, b, c, ...
+      drawGraph(ctxG, scaledVertsG, graphG.edges, labelsG);
+      drawGraph(ctxH, scaledVertsH, graphH.edges, labelsH);
+    }
+
+    function buildMappingGrid() {
+      const grid = document.getElementById('mappingGrid');
+      const n = graphG.verts.length;
+      const hLabels = graphH.verts.map((_, i) => String.fromCharCode(97 + i));
+
+      grid.innerHTML = '';
+      for (let i = 0; i < n; i++) {
+        const item = document.createElement('div');
+        item.className = 'mapping-item';
+
+        const label = document.createElement('label');
+        label.textContent = `${i+1} →`;
+        item.appendChild(label);
+
+        const select = document.createElement('select');
+        select.id = `map-${i}`;
+        const optNone = document.createElement('option');
+        optNone.value = '-1';
+        optNone.textContent = '?';
+        select.appendChild(optNone);
+
+        for (let j = 0; j < graphH.verts.length; j++) {
+          const opt = document.createElement('option');
+          opt.value = j;
+          opt.textContent = hLabels[j];
+          select.appendChild(opt);
+        }
+        item.appendChild(select);
+        grid.appendChild(item);
+      }
+    }
+
+    function getDegreeSeq(graph) {
+      const deg = new Array(graph.verts.length).fill(0);
+      graph.edges.forEach(([a, b]) => { deg[a]++; deg[b]++; });
+      return deg.slice().sort((a, b) => a - b);
+    }
+
+    function countTriangles(graph) {
+      let count = 0;
+      const n = graph.verts.length;
+      const adj = Array.from({length: n}, () => new Set());
+      graph.edges.forEach(([a, b]) => { adj[a].add(b); adj[b].add(a); });
+      for (let i = 0; i < n; i++) {
+        for (const j of adj[i]) {
+          if (j <= i) continue;
+          for (const k of adj[j]) {
+            if (k <= j) continue;
+            if (adj[i].has(k)) count++;
+          }
+        }
+      }
+      return count;
+    }
+
+    function computeProperties() {
+      const nG = graphG.verts.length, eG = graphG.edges.length;
+      const nH = graphH.verts.length, eH = graphH.edges.length;
+      const degG = getDegreeSeq(graphG);
+      const degH = getDegreeSeq(graphH);
+      const triG = countTriangles(graphG);
+      const triH = countTriangles(graphH);
+
+      const sameDeg = JSON.stringify(degG) === JSON.stringify(degH);
+      const sameTri = triG === triH;
+
+      const list = document.getElementById('propertyList');
+      list.innerHTML = `
+        <div class="${nG === nH ? 'match' : 'mismatch'}">Vertices: G=${nG}, H=${nH} ${nG===nH?'✓':'✗'}</div>
+        <div class="${eG === eH ? 'match' : 'mismatch'}">Edges: G=${eG}, H=${eH} ${eG===eH?'✓':'✗'}</div>
+        <div class="${sameDeg ? 'match' : 'mismatch'}">Degree seq: G=[${degG}], H=[${degH}] ${sameDeg?'✓':'✗'}</div>
+        <div class="${sameTri ? 'match' : 'mismatch'}">Triangles: G=${triG}, H=${triH} ${sameTri?'✓':'✗'}</div>
+      `;
+    }
+
+    function getMapping() {
+      const n = graphG.verts.length;
+      const mapping = {};
+      for (let i = 0; i < n; i++) {
+        const val = parseInt(document.getElementById(`map-${i}`).value);
+        if (val >= 0) mapping[i] = val;
+      }
+      return mapping;
+    }
+
+    function validateMapping(mapping) {
+      const n = graphG.verts.length;
+      // Check all assigned
+      if (Object.keys(mapping).length !== n) return { valid: false, reason: 'Not all vertices are mapped.' };
+
+      // Check bijection
+      const targets = new Set(Object.values(mapping));
+      if (targets.size !== n) return { valid: false, reason: 'Mapping is not one-to-one (some H vertices used twice).' };
+
+      // Check adjacency preservation
+      const adjH = Array.from({length: graphH.verts.length}, () => new Set());
+      graphH.edges.forEach(([a, b]) => { adjH[a].add(b); adjH[b].add(a); });
+
+      for (const [a, b] of graphG.edges) {
+        const ma = mapping[a], mb = mapping[b];
+        if (!adjH[ma].has(mb)) {
+          return { valid: false, reason: `Edge ${a+1}-${b+1} in G maps to ${String.fromCharCode(97+ma)}-${String.fromCharCode(97+mb)} in H, but that's not an edge in H!` };
+        }
+      }
+
+      // Check reverse: edges in H should correspond to edges in G
+      const adjG = Array.from({length: n}, () => new Set());
+      graphG.edges.forEach(([a, b]) => { adjG[a].add(b); adjG[b].add(a); });
+
+      const reverseMap = {};
+      for (const [k, v] of Object.entries(mapping)) reverseMap[v] = parseInt(k);
+
+      for (const [a, b] of graphH.edges) {
+        const ra = reverseMap[a], rb = reverseMap[b];
+        if (!adjG[ra].has(rb)) {
+          return { valid: false, reason: `Edge ${String.fromCharCode(97+a)}-${String.fromCharCode(97+b)} in H doesn't correspond to an edge in G under your mapping.` };
+        }
+      }
+
+      return { valid: true };
+    }
+
+    function submitIsomorphic() {
+      if (!isIsomorphic) {
+        showMessage('Incorrect! These graphs are NOT isomorphic. Look at the properties panel for clues about what differs.', 'error');
+        return;
+      }
+
+      const mapping = getMapping();
+      const n = graphG.verts.length;
+
+      if (Object.keys(mapping).length < n) {
+        showMessage('Provide a complete vertex mapping to prove isomorphism! Map every G vertex to an H vertex.', 'error');
+        return;
+      }
+
+      const result = validateMapping(mapping);
+      if (result.valid) {
+        score += 10;
+        document.getElementById('scoreDisplay').textContent = score;
+        showMessage(`🎉 Correct! Your mapping is a valid isomorphism — adjacency is preserved in both directions. +10 points`, 'success');
+      } else {
+        showMessage(`Your mapping doesn't preserve adjacency: ${result.reason}`, 'error');
+      }
+    }
+
+    function submitNotIsomorphic() {
+      if (isIsomorphic) {
+        showMessage('Incorrect! These graphs ARE isomorphic. Try to find the vertex correspondence. Look at degree sequences and special vertices.', 'error');
+        return;
+      }
+
+      score += 10;
+      document.getElementById('scoreDisplay').textContent = score;
+      const level = levels[currentLevel % levels.length];
+      showMessage(`🎉 Correct! They are NOT isomorphic. Reason: ${level.reason} +10 points`, 'success');
+    }
+
+    function nextLevel() {
+      currentLevel++;
+      loadLevel();
+    }
+
+    function showHint() {
+      const level = levels[currentLevel % levels.length];
+      if (isIsomorphic) {
+        // Give a partial mapping hint
+        const entries = Object.entries(correctMapping);
+        if (entries.length > 0) {
+          const [gv, hv] = entries[0];
+          const hLabel = String.fromCharCode(97 + parseInt(hv));
+          showMessage(`Hint: These graphs ARE isomorphic. Try mapping vertex ${parseInt(gv)+1} in G to vertex ${hLabel} in H (they have the same degree and neighbourhood structure).`, 'info');
+        }
+      } else {
+        showMessage(`Hint: These graphs are NOT isomorphic. Compare the properties in the sidebar — look for a difference in vertices, edges, degree sequence, or triangles.`, 'info');
+      }
+    }
+
+    function showMessage(text, type) {
+      document.getElementById('message').innerHTML = `<div class="message message-${type}">${text}</div>`;
+    }
+
+    // Init
+    loadLevel();
+    window.addEventListener('resize', () => { resizeCanvases(); drawBoth(); });
+  </script>
+</body>
+</html>

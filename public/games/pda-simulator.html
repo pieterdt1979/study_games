@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PDA Simulator - COS3701</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 260px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .pda-display { background: #16213e; border-radius: 12px; padding: 1.5rem; }
+    .tape-area { display: flex; gap: 2px; margin: 1rem 0; justify-content: center; flex-wrap: wrap; }
+    .tape-cell { width: 36px; height: 36px; border: 2px solid #4a5568; border-radius: 4px;
+      display: flex; align-items: center; justify-content: center; font-family: monospace;
+      font-size: 1.1rem; color: #eee; background: #1a1a2e; }
+    .tape-cell.current { border-color: #2ecc71; background: rgba(46,204,113,0.15); color: #2ecc71; }
+    .tape-cell.read { border-color: #3498db; background: rgba(52,152,219,0.1); }
+    .stack-area { background: #1a1a2e; border-radius: 8px; padding: 1rem; margin: 1rem 0;
+      min-height: 120px; display: flex; flex-direction: column-reverse; align-items: center; gap: 2px; }
+    .stack-item { width: 50px; padding: 0.3rem; text-align: center; background: #2a3a5e;
+      border: 1px solid #4a5568; border-radius: 4px; font-family: monospace; color: #f39c12; }
+    .stack-item:last-child { border-color: #f39c12; background: rgba(243,156,18,0.15); }
+    .state-display { text-align: center; font-size: 1.3rem; color: #667eea; font-weight: bold; margin: 0.5rem 0; }
+    .input-row { display: flex; gap: 0.5rem; align-items: center; margin: 1rem 0; }
+    .input-row input { flex: 1; background: #2a3a5e; border: 2px solid #4a5568; border-radius: 6px;
+      padding: 0.5rem 0.75rem; color: #fff; font-family: monospace; font-size: 1rem; }
+    .input-row input:focus { outline: none; border-color: #667eea; }
+    .pda-desc { background: #1a1a2e; border-radius: 8px; padding: 1rem; margin: 1rem 0;
+      font-size: 0.85rem; color: #bbb; line-height: 1.7; max-height: 200px; overflow-y: auto; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box { background: #16213e; border-radius: 8px; padding: 1rem; }
+    .stat-box h4 { color: #667eea; margin-bottom: 0.5rem; font-size: 0.85rem; text-transform: uppercase; }
+    .stat-box .value { font-size: 1.6rem; font-weight: bold; }
+    .theory-box { background: #16213e; border-radius: 8px; padding: 1rem; border-left: 4px solid #f39c12; }
+    .theory-box h4 { color: #f39c12; margin-bottom: 0.5rem; }
+    .theory-box p { color: #bbb; font-size: 0.82rem; line-height: 1.7; }
+    .accept { color: #2ecc71; } .reject { color: #e74c3c; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header"><a href="/">&#8592;</a><h2>📚 PDA Simulator</h2></div>
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Enter a word and step through PDA execution. Watch the <strong>stack</strong> grow and shrink as
+      the machine reads input. Predict whether the word will be <strong>accepted</strong> or <strong>rejected</strong>!</p>
+    </div>
+    <div class="game-layout">
+      <div>
+        <div class="pda-display">
+          <h4 style="color:#667eea" id="pdaName">PDA 1: aⁿbⁿ acceptor</h4>
+          <div class="state-display">State: <span id="stateDisplay">START</span></div>
+          <h4 style="color:#888;font-size:0.8rem;margin-top:0.5rem">Input Tape</h4>
+          <div class="tape-area" id="tapeArea"></div>
+          <h4 style="color:#888;font-size:0.8rem">Stack (top is highlighted)</h4>
+          <div class="stack-area" id="stackArea"><span style="color:#666">empty</span></div>
+        </div>
+        <div class="input-row">
+          <input type="text" id="wordInput" placeholder="Enter word (e.g. aaabbb)">
+          <button class="btn btn-primary" onclick="loadWord()">Load</button>
+        </div>
+        <div class="controls">
+          <button class="btn btn-success" onclick="step()">Step →</button>
+          <button class="btn btn-secondary" onclick="runAll()">Run All</button>
+          <button class="btn btn-secondary" onclick="nextPDA()">Next PDA</button>
+        </div>
+        <div id="message"></div>
+        <div class="pda-desc" id="pdaDesc"></div>
+      </div>
+      <div class="sidebar">
+        <div class="stat-box"><h4>Status</h4><div class="value" id="statusDisplay">Ready</div></div>
+        <div class="stat-box"><h4>Steps Taken</h4><div class="value" id="stepsDisplay">0</div></div>
+        <div class="stat-box"><h4>Stack Size</h4><div class="value" id="stackSize">0</div></div>
+        <div class="theory-box"><h4>Theory</h4>
+          <p id="theoryNote">A <strong>PDA</strong> = FA + pushdown stack. It can:<br>
+          • READ input (one char at a time)<br>• PUSH onto stack<br>• POP from stack<br><br>
+          PDAs accept exactly the <strong>context-free languages</strong>.<br>
+          Nondeterministic PDAs > Deterministic PDAs (unlike FAs!).</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    let pdaIdx = 0, tape = [], headPos = 0, stack = [], state = '', steps = 0, halted = false;
+
+    const pdas = [
+      { name: "aⁿbⁿ (n≥1)", desc: "Strategy: Push every 'a' onto the stack. When b's start, pop one 'a' per 'b'. Accept iff stack is empty at end.\n\nWHY THIS WORKS: The stack acts as a counter. Pushing n a's, then popping one per b, ensures exactly n b's follow. This is precisely what an FA CANNOT do (finite states can't count unboundedly). The stack gives the PDA 'memory' of how many a's were seen.",
+        accepts: w => { const m = w.match(/^(a+)(b+)$/); return m && m[1].length === m[2].length; },
+        simulate: function*(word) {
+          stack = []; state = 'READ_A'; headPos = 0;
+          for (let i = 0; i < word.length; i++) {
+            headPos = i;
+            if (state === 'READ_A') {
+              if (word[i] === 'a') { stack.push('a'); state = 'READ_A'; yield `Read a, PUSH a`; }
+              else if (word[i] === 'b') { if (stack.length===0) { state='REJECT'; yield 'No a to match b'; return; }
+                stack.pop(); state = 'READ_B'; yield `Read b, POP a`; }
+              else { state = 'REJECT'; yield 'Invalid char'; return; }
+            } else if (state === 'READ_B') {
+              if (word[i] === 'b') { if (stack.length===0) { state='REJECT'; yield 'Extra b, stack empty'; return; }
+                stack.pop(); yield `Read b, POP a`; }
+              else { state = 'REJECT'; yield 'Expected b, got a'; return; }
+            }
+          }
+          headPos = word.length;
+          state = stack.length === 0 ? 'ACCEPT' : 'REJECT';
+          yield state === 'ACCEPT' ? 'Stack empty → ACCEPT' : 'Stack not empty → REJECT';
+        }},
+      { name: "aⁿb²ⁿ (n≥0)", desc: "Strategy: Push TWO symbols for each 'a' read. Then pop one per 'b'. Accept iff stack empty.\n\nWHY THIS WORKS: Each 'a' deposits 2 tokens on the stack, so n a's → 2n tokens. Each 'b' removes one token, so 2n b's are needed to empty the stack. This shows PDAs can handle any fixed ratio (aⁿbᵏⁿ) by pushing k symbols per 'a'.",
+        accepts: w => { if (w==='') return true; const m=w.match(/^(a*)(b*)$/); return m && m[1].length*2===m[2].length; },
+        simulate: function*(word) {
+          stack=[]; state='READ_A'; headPos=0;
+          if (word==='') { state='ACCEPT'; yield 'Empty word → ACCEPT'; return; }
+          for (let i=0;i<word.length;i++) {
+            headPos=i;
+            if (state==='READ_A') {
+              if (word[i]==='a') { stack.push('a','a'); yield `Read a, PUSH a,a`; }
+              else if (word[i]==='b') { if(!stack.length){state='REJECT';yield'No match';return;} stack.pop(); state='READ_B'; yield `Read b, POP a`; }
+              else {state='REJECT';yield'Invalid';return;}
+            } else {
+              if (word[i]==='b') { if(!stack.length){state='REJECT';yield'Extra b';return;} stack.pop(); yield `Read b, POP a`; }
+              else {state='REJECT';yield'Expected b';return;}
+            }
+          }
+          headPos=word.length; state=stack.length===0?'ACCEPT':'REJECT';
+          yield state==='ACCEPT'?'Stack empty → ACCEPT':'Stack not empty → REJECT';
+        }},
+      { name: "Palindromes (even length)", desc: "Strategy: Push the first half onto the stack, then pop and compare with the second half character by character.\n\nWHY THIS NEEDS NONDETERMINISM: A DPDA doesn't know where the middle is! It can't decide when to switch from pushing to popping. A nondeterministic PDA guesses the middle point. This is why PDA ≠ DPDA (unlike FA = NFA). PALINDROME is the classic example of a CFL not accepted by any DPDA.",
+        accepts: w => w===w.split('').reverse().join('') && w.length%2===0,
+        simulate: function*(word) {
+          stack=[]; state='PUSH'; headPos=0; const half=Math.floor(word.length/2);
+          if (word.length%2!==0) { state='REJECT'; yield 'Odd length → REJECT (even palindromes only)'; return; }
+          for (let i=0;i<half;i++) { headPos=i; stack.push(word[i]); yield `Push ${word[i]}`; }
+          state='POP';
+          for (let i=half;i<word.length;i++) {
+            headPos=i; const top=stack.pop();
+            if (top!==word[i]) { state='REJECT'; yield `POP ${top} ≠ ${word[i]} → REJECT`; return; }
+            yield `POP ${top} = ${word[i]} ✓`;
+          }
+          headPos=word.length; state='ACCEPT'; yield 'All matched → ACCEPT';
+        }}
+    ];
+
+    let simGen = null;
+    function loadPDA() {
+      const pda = pdas[pdaIdx % pdas.length];
+      document.getElementById('pdaName').textContent = `PDA ${pdaIdx+1}: ${pda.name}`;
+      document.getElementById('pdaDesc').textContent = pda.desc;
+      tape=[]; headPos=0; stack=[]; state='START'; steps=0; halted=false; simGen=null;
+      render();
+    }
+    function loadWord() {
+      const word = document.getElementById('wordInput').value.trim();
+      const pda = pdas[pdaIdx % pdas.length];
+      tape = word.split(''); headPos=0; stack=[]; state='RUNNING'; steps=0; halted=false;
+      simGen = pda.simulate(word);
+      document.getElementById('message').innerHTML='';
+      render();
+    }
+    function step() {
+      if (!simGen||halted) return;
+      const r=simGen.next();
+      if (r.done) { halted=true; } else { steps++; showMessage(r.value,'info'); }
+      render();
+      if (state==='ACCEPT') showMessage('✓ ACCEPTED!','success');
+      else if (state==='REJECT') showMessage('✗ REJECTED (crashed)','error');
+    }
+    function runAll() { if(!simGen) return; while(!halted){const r=simGen.next();if(r.done){halted=true;break;}steps++;} render();
+      if(state==='ACCEPT') showMessage('✓ ACCEPTED!','success'); else if(state==='REJECT') showMessage('✗ REJECTED','error'); }
+    function nextPDA() { pdaIdx++; document.getElementById('wordInput').value=''; loadPDA(); }
+    function render() {
+      document.getElementById('stateDisplay').textContent=state;
+      document.getElementById('stepsDisplay').textContent=steps;
+      document.getElementById('stackSize').textContent=stack.length;
+      document.getElementById('statusDisplay').innerHTML = state==='ACCEPT'?'<span class="accept">ACCEPTED</span>' : state==='REJECT'?'<span class="reject">REJECTED</span>' : state;
+      const tapeEl=document.getElementById('tapeArea');
+      tapeEl.innerHTML=tape.map((c,i)=>`<div class="tape-cell ${i===headPos?'current':i<headPos?'read':''}">${c}</div>`).join('')+
+        `<div class="tape-cell ${headPos>=tape.length?'current':''}">Δ</div>`;
+      const stackEl=document.getElementById('stackArea');
+      stackEl.innerHTML=stack.length?stack.map((c,i)=>`<div class="stack-item">${c}</div>`).join(''):'<span style="color:#666">empty</span>';
+    }
+    function showMessage(t,type){document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`;}
+    loadPDA();
+  </script>
+</body>
+</html>

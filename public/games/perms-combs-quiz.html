@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Permutations & Combinations Quiz - CS Study Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout { display: grid; grid-template-columns: 1fr 260px; gap: 1.5rem; }
+    @media (max-width: 900px) { .game-layout { grid-template-columns: 1fr; } }
+    .question-box { background: #16213e; border-radius: 12px; padding: 2rem; margin-bottom: 1.5rem; }
+    .question-box h3 { color: #667eea; margin-bottom: 1rem; font-size: 1.1rem; }
+    .question-box .problem { font-size: 1.15rem; line-height: 1.8; color: #eee; }
+    .answer-area { display: flex; gap: 1rem; align-items: center; margin: 1.5rem 0; flex-wrap: wrap; }
+    .answer-area input { background: #1a1a2e; border: 2px solid #4a5568; border-radius: 8px;
+      padding: 0.75rem 1rem; color: #fff; font-size: 1.2rem; width: 200px; }
+    .answer-area input:focus { outline: none; border-color: #667eea; }
+    .options { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; margin: 1.5rem 0; }
+    .option-btn { background: #1a1a2e; border: 2px solid #4a5568; border-radius: 8px;
+      padding: 1rem; color: #eee; font-size: 1rem; cursor: pointer; transition: all 0.2s; text-align: center; }
+    .option-btn:hover { border-color: #667eea; background: rgba(102,126,234,0.1); }
+    .option-btn.correct { border-color: #2ecc71; background: rgba(46,204,113,0.2); color: #2ecc71; }
+    .option-btn.wrong { border-color: #e74c3c; background: rgba(231,76,60,0.2); color: #e74c3c; }
+    .explanation { background: #1a2744; border-left: 4px solid #667eea; padding: 1rem 1.5rem;
+      border-radius: 0 8px 8px 0; margin-top: 1rem; display: none; line-height: 1.7; }
+    .explanation.show { display: block; }
+    .sidebar { background: #16213e; border-radius: 12px; padding: 1.5rem; height: fit-content; }
+    .sidebar h4 { color: #667eea; margin-bottom: 1rem; }
+    .stat-row { display: flex; justify-content: space-between; padding: 0.5rem 0;
+      border-bottom: 1px solid #2a3a5e; color: #ccc; }
+    .btn { padding: 0.75rem 1.5rem; border-radius: 8px; border: none; font-size: 1rem;
+      cursor: pointer; font-weight: 600; transition: all 0.2s; }
+    .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: #fff; }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 4px 15px rgba(102,126,234,0.4); }
+    .btn-secondary { background: #2a3a5e; color: #ccc; }
+    .btn-secondary:hover { background: #3a4a6e; }
+    .progress-bar { background: #1a1a2e; border-radius: 8px; height: 8px; margin: 1rem 0; overflow: hidden; }
+    .progress-fill { height: 100%; background: linear-gradient(90deg, #667eea, #764ba2);
+      border-radius: 8px; transition: width 0.4s; }
+    .formula { background: #1a1a2e; padding: 0.3rem 0.6rem; border-radius: 4px;
+      font-family: 'Courier New', monospace; color: #f8c291; display: inline-block; margin: 0.2rem 0; }
+    .category-badge { display: inline-block; background: rgba(102,126,234,0.2); color: #667eea;
+      padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.8rem; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" style="color:#667eea;text-decoration:none;font-size:0.9rem;">← Back to Games</a>
+    <h1>Permutations & Combinations Quiz</h1>
+    <p class="subtitle">MAT2612 — Solve counting problems using P(n,r) and C(n,r)</p>
+
+    <div class="game-layout">
+      <div class="main-area">
+        <div class="question-box" id="questionBox">
+          <span class="category-badge" id="categoryBadge">Loading...</span>
+          <h3 id="questionTitle">Question 1 of 10</h3>
+          <div class="problem" id="problemText"></div>
+          <div class="options" id="optionsArea"></div>
+          <div class="answer-area" id="inputArea" style="display:none;">
+            <input type="number" id="answerInput" placeholder="Your answer...">
+            <button class="btn btn-primary" onclick="checkAnswer()">Submit</button>
+          </div>
+          <div class="explanation" id="explanation"></div>
+          <div style="margin-top:1.5rem; display:flex; gap:1rem;" id="navButtons">
+            <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" style="display:none;">Next Question →</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <h4>Progress</h4>
+        <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+        <div class="stat-row"><span>Question</span><span id="qNum">1 / 10</span></div>
+        <div class="stat-row"><span>Score</span><span id="score">0</span></div>
+        <div class="stat-row"><span>Streak</span><span id="streak">0 🔥</span></div>
+        <hr style="border-color:#2a3a5e; margin:1rem 0;">
+        <h4>Formulas</h4>
+        <div style="font-size:0.85rem; color:#aaa; line-height:2;">
+          <div><span class="formula">P(n,r) = n!/(n-r)!</span></div>
+          <div><span class="formula">C(n,r) = n!/(r!(n-r)!)</span></div>
+          <div><span class="formula">n! = n(n-1)...1</span></div>
+        </div>
+        <hr style="border-color:#2a3a5e; margin:1rem 0;">
+        <button class="btn btn-secondary" onclick="resetQuiz()" style="width:100%;">Restart Quiz</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Question bank
+    const questions = [
+      {
+        category: "Permutations",
+        text: "How many permutations of {a, b, c} are there?",
+        options: ["3", "6", "9", "12"],
+        answer: 1,
+        explanation: "This is P(3,3) = 3!/0! = 6. The permutations are: abc, acb, bac, bca, cab, cba."
+      },
+      {
+        category: "Permutations",
+        text: "How many permutations of {a, b, c, d, e, f, g} end with <em>a</em>?",
+        options: ["720", "5040", "120", "360"],
+        answer: 0,
+        explanation: "Since the last position is fixed as 'a', we permute the remaining 6 elements: P(6,6) = 6! = 720."
+      },
+      {
+        category: "r-Permutations",
+        text: "Find the number of 5-permutations of a set with 9 elements.",
+        options: ["15120", "3024", "120", "362880"],
+        answer: 0,
+        explanation: "P(9,5) = 9!/(9-5)! = 9!/4! = 9 × 8 × 7 × 6 × 5 = 15,120."
+      },
+      {
+        category: "Combinations",
+        text: "How many bit strings of length 10 contain <em>exactly four</em> 1s?",
+        options: ["120", "210", "252", "330"],
+        answer: 1,
+        explanation: "Choose 4 out of 10 positions for the 1s: C(10,4) = 10!/(4! × 6!) = 210."
+      },
+      {
+        category: "Combinations",
+        text: "How many bit strings of length 10 contain <em>at most four</em> 1s?",
+        options: ["386", "848", "252", "512"],
+        answer: 0,
+        explanation: "C(10,0) + C(10,1) + C(10,2) + C(10,3) + C(10,4) = 1 + 10 + 45 + 120 + 210 = 386."
+      },
+      {
+        category: "Combinations",
+        text: "How many bit strings of length 10 contain <em>at least four</em> 1s?",
+        options: ["386", "848", "638", "1024"],
+        answer: 1,
+        explanation: "Total strings minus those with 0,1,2, or 3 ones: 2<sup>10</sup> − [C(10,0)+C(10,1)+C(10,2)+C(10,3)] = 1024 − 176 = 848."
+      },
+      {
+        category: "Combinations",
+        text: "How many bit strings of length 10 contain an <em>equal number</em> of 0s and 1s?",
+        options: ["210", "252", "120", "512"],
+        answer: 1,
+        explanation: "Choose 5 positions for 1s (the rest are 0s): C(10,5) = 10!/(5! × 5!) = 252."
+      },
+      {
+        category: "Vowels & Consonants",
+        text: "How many strings of 6 lowercase letters contain <em>exactly one</em> vowel? (21 consonants, 5 vowels)",
+        options: ["122,523,030", "72,930,375", "223,149,655", "100,626,625"],
+        answer: 0,
+        explanation: "Choose 1 vowel (5 ways), place it in 1 of 6 positions, fill 5 remaining with consonants: 5 × 6 × 21<sup>5</sup> = 122,523,030."
+      },
+      {
+        category: "Vowels & Consonants",
+        text: "How many strings of 6 lowercase letters contain <em>exactly two</em> vowels?",
+        options: ["122,523,030", "72,930,375", "223,149,655", "100,626,625"],
+        answer: 1,
+        explanation: "C(6,2) × 5<sup>2</sup> × 21<sup>4</sup> = 15 × 25 × 194,481 = 72,930,375."
+      },
+      {
+        category: "Vowels & Consonants",
+        text: "How many strings of 6 lowercase letters contain <em>at least one</em> vowel?",
+        options: ["122,523,030", "72,930,375", "223,149,655", "308,915,776"],
+        answer: 2,
+        explanation: "Total strings minus no-vowel strings: 26<sup>6</sup> − 21<sup>6</sup> = 308,915,776 − 85,766,121 = 223,149,655."
+      },
+      {
+        category: "Permutations",
+        text: "In how many ways can 8 people sit in a row?",
+        options: ["5040", "40320", "720", "362880"],
+        answer: 1,
+        explanation: "8 people in a row = 8! = 40,320."
+      },
+      {
+        category: "Combinations",
+        text: "A committee of 5 is to be chosen from 12 people. How many committees are possible?",
+        options: ["792", "95040", "120", "3991680"],
+        answer: 0,
+        explanation: "C(12,5) = 12!/(5! × 7!) = 792. Order doesn't matter in a committee."
+      },
+      {
+        category: "r-Permutations",
+        text: "How many 3-letter words can be formed from the letters {A, B, C, D, E} without repetition?",
+        options: ["10", "60", "125", "120"],
+        answer: 1,
+        explanation: "P(5,3) = 5!/(5-3)! = 5!/2! = 60."
+      },
+      {
+        category: "Combinations",
+        text: "How many ways can you choose 3 books from a shelf of 7?",
+        options: ["21", "35", "210", "42"],
+        answer: 1,
+        explanation: "C(7,3) = 7!/(3! × 4!) = 35. The order of selection doesn't matter."
+      },
+      {
+        category: "Permutations",
+        text: "How many ways can gold, silver, and bronze medals be awarded to 10 athletes?",
+        options: ["120", "720", "1000", "30"],
+        answer: 1,
+        explanation: "P(10,3) = 10 × 9 × 8 = 720. Order matters (different medals)."
+      },
+      {
+        category: "Combinations",
+        text: "From a standard deck of 52 cards, how many 5-card hands contain exactly 2 aces?",
+        options: ["103,776", "2,598,960", "6", "778,320"],
+        answer: 0,
+        explanation: "Choose 2 aces from 4: C(4,2) = 6. Choose 3 non-aces from 48: C(48,3) = 17,296. Total: 6 × 17,296 = 103,776."
+      },
+      {
+        category: "Permutations",
+        text: "How many different 4-digit PIN codes are possible if digits can repeat?",
+        options: ["5040", "10000", "10", "256"],
+        answer: 1,
+        explanation: "Each position has 10 choices (0-9), and repetition is allowed: 10<sup>4</sup> = 10,000."
+      },
+      {
+        category: "Combinations",
+        text: "How many diagonals does a convex polygon with 8 sides have?",
+        options: ["20", "28", "56", "8"],
+        answer: 0,
+        explanation: "Total line segments: C(8,2) = 28. Subtract 8 sides: 28 − 8 = 20 diagonals."
+      }
+    ];
+
+    let currentQ = 0;
+    let score = 0;
+    let streak = 0;
+    let answered = false;
+    let shuffledQuestions = [];
+
+    function shuffle(arr) {
+      const a = [...arr];
+      for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+      }
+      return a;
+    }
+
+    function startQuiz() {
+      shuffledQuestions = shuffle(questions).slice(0, 10);
+      currentQ = 0;
+      score = 0;
+      streak = 0;
+      answered = false;
+      renderQuestion();
+    }
+
+    function renderQuestion() {
+      const q = shuffledQuestions[currentQ];
+      document.getElementById('categoryBadge').textContent = q.category;
+      document.getElementById('questionTitle').textContent = `Question ${currentQ + 1} of ${shuffledQuestions.length}`;
+      document.getElementById('problemText').innerHTML = q.text;
+      document.getElementById('explanation').classList.remove('show');
+      document.getElementById('explanation').innerHTML = '';
+      document.getElementById('nextBtn').style.display = 'none';
+      answered = false;
+
+      const optArea = document.getElementById('optionsArea');
+      optArea.innerHTML = '';
+      q.options.forEach((opt, i) => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.textContent = opt;
+        btn.onclick = () => selectOption(i);
+        optArea.appendChild(btn);
+      });
+
+      document.getElementById('qNum').textContent = `${currentQ + 1} / ${shuffledQuestions.length}`;
+      document.getElementById('progressFill').style.width = `${((currentQ) / shuffledQuestions.length) * 100}%`;
+      updateStats();
+    }
+
+    function selectOption(idx) {
+      if (answered) return;
+      answered = true;
+      const q = shuffledQuestions[currentQ];
+      const buttons = document.querySelectorAll('.option-btn');
+
+      buttons[q.answer].classList.add('correct');
+      if (idx !== q.answer) {
+        buttons[idx].classList.add('wrong');
+        streak = 0;
+      } else {
+        score++;
+        streak++;
+      }
+
+      document.getElementById('explanation').innerHTML = `<strong>Explanation:</strong> ${q.explanation}`;
+      document.getElementById('explanation').classList.add('show');
+      document.getElementById('nextBtn').style.display = 'inline-block';
+      updateStats();
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ >= shuffledQuestions.length) {
+        showResults();
+        return;
+      }
+      renderQuestion();
+    }
+
+    function showResults() {
+      const pct = Math.round((score / shuffledQuestions.length) * 100);
+      const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '👍' : '📚';
+      document.getElementById('questionBox').innerHTML = `
+        <h3>${emoji} Quiz Complete!</h3>
+        <div class="problem">
+          <p>You scored <strong>${score}</strong> out of <strong>${shuffledQuestions.length}</strong> (${pct}%).</p>
+          <p style="margin-top:1rem;">${pct >= 80 ? 'Excellent! You have a strong grasp of permutations and combinations.' :
+            pct >= 60 ? 'Good job! Review the explanations for the ones you missed.' :
+            'Keep practicing! Focus on distinguishing when order matters (permutation) vs. when it doesn\'t (combination).'}</p>
+        </div>
+        <button class="btn btn-primary" onclick="resetQuiz()" style="margin-top:1.5rem;">Try Again</button>
+      `;
+      document.getElementById('progressFill').style.width = '100%';
+    }
+
+    function updateStats() {
+      document.getElementById('score').textContent = score;
+      document.getElementById('streak').textContent = `${streak} 🔥`;
+    }
+
+    function resetQuiz() { startQuiz(); }
+
+    startQuiz();
+  </script>
+</body>
+</html>

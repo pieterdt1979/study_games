@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Counting Challenges - Discrete Math Games</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .game-layout {
+      display: grid;
+      grid-template-columns: 1fr 280px;
+      gap: 1.5rem;
+    }
+    @media (max-width: 900px) {
+      .game-layout { grid-template-columns: 1fr; }
+    }
+    .question-box {
+      background: #16213e;
+      border-radius: 12px;
+      padding: 2rem;
+      margin-bottom: 1.5rem;
+    }
+    .question-box h3 {
+      color: #667eea;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    .question-box .problem {
+      font-size: 1.15rem;
+      line-height: 1.8;
+      color: #eee;
+    }
+    .answer-area {
+      display: flex;
+      gap: 1rem;
+      align-items: center;
+      margin: 1.5rem 0;
+    }
+    .answer-area input {
+      background: #1a1a2e;
+      border: 2px solid #4a5568;
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      color: #fff;
+      font-size: 1.2rem;
+      width: 200px;
+    }
+    .answer-area input:focus {
+      outline: none;
+      border-color: #667eea;
+    }
+    .options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 0.75rem;
+      margin: 1.5rem 0;
+    }
+    .option-btn {
+      background: #1a1a2e;
+      border: 2px solid #4a5568;
+      border-radius: 8px;
+      padding: 1rem;
+      color: #eee;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      text-align: center;
+    }
+    .option-btn:hover {
+      border-color: #667eea;
+      background: rgba(102,126,234,0.1);
+    }
+    .option-btn.selected {
+      border-color: #667eea;
+      background: rgba(102,126,234,0.2);
+    }
+    .option-btn.correct {
+      border-color: #2ecc71;
+      background: rgba(46,204,113,0.2);
+    }
+    .option-btn.wrong {
+      border-color: #e74c3c;
+      background: rgba(231,76,60,0.2);
+    }
+    .explanation {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1.5rem;
+      margin-top: 1rem;
+      border-left: 4px solid #2ecc71;
+      display: none;
+    }
+    .explanation h4 { color: #2ecc71; margin-bottom: 0.5rem; }
+    .explanation p { color: #bbb; line-height: 1.7; font-size: 0.95rem; }
+    .sidebar { display: flex; flex-direction: column; gap: 1rem; }
+    .stat-box {
+      background: #16213e;
+      border-radius: 8px;
+      padding: 1rem;
+    }
+    .stat-box h4 {
+      color: #667eea;
+      margin-bottom: 0.5rem;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+    }
+    .stat-box .value { font-size: 1.8rem; font-weight: bold; }
+    .topic-tag {
+      display: inline-block;
+      padding: 0.2rem 0.6rem;
+      background: rgba(102,126,234,0.15);
+      border: 1px solid rgba(102,126,234,0.3);
+      border-radius: 12px;
+      font-size: 0.75rem;
+      color: #667eea;
+      margin: 0.2rem;
+    }
+    .progress-bar {
+      background: #2a3a5e;
+      border-radius: 4px;
+      height: 8px;
+      margin-top: 0.5rem;
+    }
+    .progress-fill {
+      background: linear-gradient(90deg, #667eea, #764ba2);
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.3s;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="game-header">
+      <a href="/">&#8592;</a>
+      <h2>🧮 Counting Challenges</h2>
+    </div>
+
+    <div class="game-info">
+      <h4>How to Play</h4>
+      <p>Solve counting problems using permutations, combinations, the multiplication principle, and arrangements with repetition. Select or type your answer and check if you're right!</p>
+    </div>
+
+    <div class="game-layout">
+      <div>
+        <div class="question-box">
+          <h3 id="questionTitle">Question 1</h3>
+          <div class="problem" id="problemText"></div>
+          <div id="topicTags"></div>
+        </div>
+
+        <div class="options" id="optionsArea"></div>
+
+        <div class="controls">
+          <button class="btn btn-primary" onclick="submitAnswer()">Check Answer</button>
+          <button class="btn btn-secondary" onclick="nextQuestion()">Next Question</button>
+        </div>
+        <div id="message"></div>
+
+        <div class="explanation" id="explanation">
+          <h4>Solution</h4>
+          <p id="explanationText"></p>
+        </div>
+      </div>
+
+      <div class="sidebar">
+        <div class="stat-box">
+          <h4>Question</h4>
+          <div class="value" id="questionNum">1 / 15</div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progressFill" style="width:0%"></div>
+          </div>
+        </div>
+        <div class="stat-box">
+          <h4>Score</h4>
+          <div class="value" id="scoreDisplay">0</div>
+        </div>
+        <div class="stat-box">
+          <h4>Streak</h4>
+          <div class="value" id="streakDisplay">0</div>
+        </div>
+        <div class="stat-box">
+          <h4>Key Formulas</h4>
+          <p style="color:#bbb; font-size:0.85rem; line-height:1.8;">
+            P(n,r) = n!/(n-r)!<br>
+            C(n,r) = n!/(r!(n-r)!)<br>
+            Repetition arrangements: n!/(r₁!r₂!...rₘ!)<br>
+            Selections w/ rep: C(n+r-1, r)<br>
+            Multiplication: r₁ × r₂ × ... × rₘ
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentQ = 0;
+    let score = 0;
+    let streak = 0;
+    let answered = false;
+    let selectedOption = -1;
+
+    const questions = [
+      {
+        q: "How many ways can 5 people sit in a row?",
+        options: ["25", "120", "60", "720"],
+        correct: 1,
+        topics: ["Permutations", "Multiplication Principle"],
+        explanation: "This is a permutation of 5 distinct objects: 5! = 5×4×3×2×1 = 120. First person has 5 choices, second has 4, third has 3, etc. By the multiplication principle: 5×4×3×2×1 = 120."
+      },
+      {
+        q: "How many binary strings of length 8 are there?",
+        options: ["16", "64", "256", "512"],
+        correct: 2,
+        topics: ["Multiplication Principle", "Binary Strings"],
+        explanation: "Each position has 2 choices (0 or 1). By the multiplication principle: 2×2×...×2 (8 times) = 2⁸ = 256. This is an arrangement with repetition of 2 types in 8 positions."
+      },
+      {
+        q: "A committee of 3 is chosen from 10 people. How many ways?",
+        options: ["720", "120", "30", "1000"],
+        correct: 1,
+        topics: ["Combinations", "C(n,r)"],
+        explanation: "Order doesn't matter → combination. C(10,3) = 10!/(3!·7!) = (10×9×8)/(3×2×1) = 120. We choose 3 positions from 10, and the committee {A,B,C} is the same as {B,A,C}."
+      },
+      {
+        q: "How many arrangements of the letters in MISSISSIPPI?",
+        options: ["34650", "39916800", "11!", "4!·4!·2!"],
+        correct: 0,
+        topics: ["Arrangements with Repetition"],
+        explanation: "MISSISSIPPI has 11 letters: M(1), I(4), S(4), P(2). Arrangements with repetition: 11!/(1!·4!·4!·2!) = 34650. We choose positions for each letter type: C(11,1)·C(10,4)·C(6,4)·C(2,2) = 34650."
+      },
+      {
+        q: "How many ways to choose 4 scoops from 6 ice cream flavours (repetition allowed)?",
+        options: ["360", "126", "15", "1296"],
+        correct: 1,
+        topics: ["Selections with Repetition"],
+        explanation: "This is selection with repetition: r=4 objects from n=6 types. Formula: C(n+r-1, r) = C(6+4-1, 4) = C(9,4) = 9!/(4!·5!) = 126. Equivalently, count binary strings with 5 ones and 4 zeros."
+      },
+      {
+        q: "How many edges does the complete graph K₇ have?",
+        options: ["7", "14", "21", "42"],
+        correct: 2,
+        topics: ["Combinations", "Graph Theory"],
+        explanation: "Each edge is a pair of vertices: C(7,2) = 7!/(2!·5!) = 21. Or use the edge counting theorem: sum of degrees = 2×edges. Each vertex has degree 6, so 7×6 = 2e, giving e = 21."
+      },
+      {
+        q: "In how many ways can 8 distinct books be divided into 2 groups of 4?",
+        options: ["70", "35", "1680", "2520"],
+        correct: 1,
+        topics: ["Combinations", "Overcounting"],
+        explanation: "Choose 4 books for group 1: C(8,4) = 70. But since the groups are unlabelled (swapping groups gives the same division), divide by 2!: 70/2 = 35. Be careful about overcounting!"
+      },
+      {
+        q: "How many non-negative integer solutions does x₁ + x₂ + x₃ = 10 have?",
+        options: ["66", "120", "1000", "55"],
+        correct: 0,
+        topics: ["Selections with Repetition", "Stars & Bars"],
+        explanation: "This is distributing 10 identical objects into 3 distinct containers (or selecting 10 from 3 types with repetition). C(10+3-1, 10) = C(12,10) = C(12,2) = 66."
+      },
+      {
+        q: "A licence plate has 3 letters followed by 4 digits. How many possible plates?",
+        options: ["26³ × 10⁴", "C(26,3) × C(10,4)", "P(26,3) × P(10,4)", "36⁷"],
+        correct: 0,
+        topics: ["Multiplication Principle"],
+        explanation: "Each letter position: 26 choices (repetition allowed). Each digit position: 10 choices. By multiplication principle: 26×26×26 × 10×10×10×10 = 26³ × 10⁴ = 175,760,000."
+      },
+      {
+        q: "How many ternary strings of length 5 have exactly two 0's?",
+        options: ["80", "90", "40", "60"],
+        correct: 0,
+        topics: ["Arrangements with Repetition", "Binomial"],
+        explanation: "Choose 2 positions for the 0's: C(5,2) = 10 ways. The remaining 3 positions each get a 1 or 2 (2 choices each): 2³ = 8 ways. By multiplication: 10 × 8 = 80."
+      },
+      {
+        q: "How many subsets does a set with 6 elements have?",
+        options: ["6", "36", "64", "720"],
+        correct: 2,
+        topics: ["Multiplication Principle", "Subsets"],
+        explanation: "Each element is either in the subset or not (2 choices). By multiplication: 2⁶ = 64. Alternatively, sum all C(6,r) for r=0,...,6: this equals 2⁶ = 64 (binomial theorem with x=1, a=1)."
+      },
+      {
+        q: "How many ways can 12 identical cookies be distributed among 4 children?",
+        options: ["455", "495", "220", "48"],
+        correct: 0,
+        topics: ["Selections with Repetition", "Distribution"],
+        explanation: "Identical objects into distinct containers: C(12+4-1, 12) = C(15,12) = C(15,3) = (15×14×13)/(3×2×1) = 455. Same as non-negative integer solutions to x₁+x₂+x₃+x₄=12."
+      },
+      {
+        q: "What is C(10,3) + C(10,4)?",
+        options: ["C(11,4)", "C(10,7)", "C(20,7)", "330"],
+        correct: 0,
+        topics: ["Pascal's Identity", "Binomial Identities"],
+        explanation: "By Pascal's identity (identity 3 in Tucker §5.5): C(n,r) + C(n,r+1) = C(n+1,r+1). So C(10,3) + C(10,4) = C(11,4) = 330. This is the fundamental recurrence of Pascal's triangle."
+      },
+      {
+        q: "A round table has 8 seats. How many ways can 8 people be seated?",
+        options: ["40320", "5040", "8!", "362880"],
+        correct: 1,
+        topics: ["Circular Permutations"],
+        explanation: "For circular arrangements, we fix one person's position (removing rotational symmetry). The remaining 7 people arrange in 7! = 5040 ways. General formula: (n-1)! for n objects in a circle."
+      },
+      {
+        q: "How many paths from (0,0) to (4,3) in a grid, moving only right or up?",
+        options: ["35", "12", "24", "7"],
+        correct: 0,
+        topics: ["Block Walking", "Combinations"],
+        explanation: "You need exactly 4 right moves and 3 up moves (7 moves total). Choose which 4 are right: C(7,4) = 35. Or equivalently, arrange RRRRUUU: 7!/(4!·3!) = 35. This is the block-walking model for binomial coefficients!"
+      }
+    ];
+
+    function loadQuestion() {
+      const q = questions[currentQ % questions.length];
+      answered = false;
+      selectedOption = -1;
+
+      document.getElementById('questionTitle').textContent = `Question ${currentQ + 1}`;
+      document.getElementById('problemText').textContent = q.q;
+      document.getElementById('questionNum').textContent = `${currentQ + 1} / ${questions.length}`;
+      document.getElementById('progressFill').style.width = `${(currentQ / questions.length) * 100}%`;
+      document.getElementById('message').innerHTML = '';
+      document.getElementById('explanation').style.display = 'none';
+
+      const tags = document.getElementById('topicTags');
+      tags.innerHTML = q.topics.map(t => `<span class="topic-tag">${t}</span>`).join('');
+
+      const area = document.getElementById('optionsArea');
+      area.innerHTML = q.options.map((opt, i) => `
+        <div class="option-btn" id="opt-${i}" onclick="selectOption(${i})">${opt}</div>
+      `).join('');
+    }
+
+    function selectOption(i) {
+      if (answered) return;
+      selectedOption = i;
+      document.querySelectorAll('.option-btn').forEach((btn, idx) => {
+        btn.classList.toggle('selected', idx === i);
+      });
+    }
+
+    function submitAnswer() {
+      if (answered) return;
+      if (selectedOption < 0) {
+        showMessage('Select an answer first!', 'error');
+        return;
+      }
+
+      answered = true;
+      const q = questions[currentQ % questions.length];
+
+      if (selectedOption === q.correct) {
+        score += 10;
+        streak++;
+        document.getElementById(`opt-${selectedOption}`).classList.add('correct');
+        showMessage(`✓ Correct! +10 points`, 'success');
+      } else {
+        streak = 0;
+        document.getElementById(`opt-${selectedOption}`).classList.add('wrong');
+        document.getElementById(`opt-${q.correct}`).classList.add('correct');
+        showMessage(`✗ Incorrect. The answer is: ${q.options[q.correct]}`, 'error');
+      }
+
+      document.getElementById('scoreDisplay').textContent = score;
+      document.getElementById('streakDisplay').textContent = streak;
+
+      // Show explanation
+      document.getElementById('explanation').style.display = 'block';
+      document.getElementById('explanationText').textContent = q.explanation;
+    }
+
+    function nextQuestion() {
+      currentQ++;
+      if (currentQ >= questions.length) {
+        showMessage(`🎉 Quiz complete! Final score: ${score}/${questions.length * 10}`, 'success');
+        currentQ = 0;
+      }
+      loadQuestion();
+    }
+
+    function showMessage(text, type) {
+      document.getElementById('message').innerHTML = `<div class="message message-${type}">${text}</div>`;
+    }
+
+    // Init
+    loadQuestion();
+  </script>
+</body>
+</html>

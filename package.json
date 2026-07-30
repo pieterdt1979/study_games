@@ -1,0 +1,13 @@
+{
+  "name": "discrete-math-games",
+  "version": "1.0.0",
+  "description": "Interactive games for learning MAT3707 Discrete Mathematics",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "4.18.2"
+  }
+}
