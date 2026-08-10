@@ -2,7 +2,8 @@
 
 Interactive browser-based study tools for university-level mathematics and computer science. Each game is a self-contained HTML file — no build step, no framework, just open and play.
 
-**Live site**: Deployed on Netlify from the `public/` folder.
+**Live site**: Deployed on Netlify from the `public/` folder.  
+**Repository**: [github.com/pieterdt1979/study_games](https://github.com/pieterdt1979/study_games)
 
 ## Tech Stack
 
