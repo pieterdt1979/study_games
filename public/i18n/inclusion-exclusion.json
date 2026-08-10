@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🔵 Inclusion-Exclusion Venn",
+    "gameDesc": "Apply the inclusion-exclusion principle to compute set unions, intersections, and complements. Solve derangement problems and use Venn diagrams to visualize."
+  },
+  "af": {
+    "gameTitle": "🔵 Insluiting-Uitsluiting Venn",
+    "gameDesc": "Pas die insluiting-uitsluitingsbeginsel toe om verenigings, snydings, en komplemente van versamelings te bereken. Los ontrangskikkingsprobleme op en gebruik Venn-diagramme vir visualisering."
+  },
+  "zu": {
+    "gameTitle": "🔵 Ukufaka-Ukukhipha Venn",
+    "gameDesc": "Sebenzisa umthetho wokufaka-ukukhipha ukubala izinyunyana zamaqoqo, izinqamulelo, namakhomplimenti. Xazulula izinkinga zokuphazamisa usebenzise amadayagramu kaVenn ukukubona."
+  }
+}

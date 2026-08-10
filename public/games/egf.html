@@ -39,11 +39,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🔬 Exponential Generating Functions</h2>
+      <h2 data-i18n="gameTitle">🔬 Exponential Generating Functions</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Build <strong>exponential generating functions</strong> for arrangements of distinct objects. The answer aᵣ is the coefficient of <strong>xʳ/r!</strong> (not xʳ). Use the power series for eˣ, cosh x, and sinh x to find coefficients.</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Build <strong>exponential generating functions</strong> for arrangements of distinct objects. The answer aᵣ is the coefficient of <strong>xʳ/r!</strong> (not xʳ). Use the power series for eˣ, cosh x, and sinh x to find coefficients.</p>
     </div>
     <div class="game-layout">
       <div>
@@ -194,6 +194,20 @@
 
     document.getElementById('coeffAnswer').addEventListener('keydown', e => { if(e.key==='Enter') checkAnswer(); });
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/egf.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

@@ -38,10 +38,10 @@
 </head>
 <body>
   <div class="container">
-    <div class="game-header"><a href="/">&#8592;</a><h2>🐦 Pigeonhole Principle</h2></div>
+    <div class="game-header"><a href="/">&#8592;</a><h2 data-i18n="gameTitle">🐦 Pigeonhole Principle</h2></div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>The <strong>Pigeonhole Principle</strong> states: if n items are placed into m containers with n > m, then at least one container must hold more than one item. Apply this to solve guaranteed-outcome problems!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">The <strong>Pigeonhole Principle</strong> states: if n items are placed into m containers with n > m, then at least one container must hold more than one item. Apply this to solve guaranteed-outcome problems!</p>
     </div>
     <div class="game-layout">
       <div>
@@ -152,6 +152,20 @@
     function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
     document.getElementById('answerInput').addEventListener('keydown', e => { if(e.key==='Enter') checkAnswer(); });
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/pigeonhole.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

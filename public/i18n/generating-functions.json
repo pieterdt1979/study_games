@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "📐 Generating Function Builder",
+    "gameDesc": "Build ordinary generating functions (OGFs) and find coefficients using power series identities. Practice expanding products and extracting the coefficient of xʳ."
+  },
+  "af": {
+    "gameTitle": "📐 Genererende Funksie-bouer",
+    "gameDesc": "Bou gewone genererende funksies (OGF's) en vind koëffisiënte deur magreeks-identiteite te gebruik. Oefen om produkte uit te brei en die koëffisiënt van xʳ te onttrek."
+  },
+  "zu": {
+    "gameTitle": "📐 Umakhi Wemisebenzi Evelayo",
+    "gameDesc": "Yakha imisebenzi evelayo ejwayelekile (ama-OGF) uthole ama-coefficient usebenzisa ubunikazi bezilundla zamandla. Zijwayeze ukwandisa imikhiqizo nokukhipha i-coefficient ka xʳ."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🔬 Exponential GF Lab",
+    "gameDesc": "Work with exponential generating functions: eˣ, cosh x, sinh x for counting arrangements of distinct objects. Find the coefficient of xʳ/r! to count arrangements."
+  },
+  "af": {
+    "gameTitle": "🔬 Eksponensiële GF Laboratorium",
+    "gameDesc": "Werk met eksponensiële genererende funksies: eˣ, cosh x, sinh x vir die tel van rangskikkings van verskillende voorwerpe. Vind die koëffisiënt van xʳ/r! om rangskikkings te tel."
+  },
+  "zu": {
+    "gameTitle": "🔬 Ilabhu ye-EGF",
+    "gameDesc": "Sebenza nemisebenzi evelayo ye-exponential: eˣ, cosh x, sinh x ukubala ukuhlela kwezinto ezihlukile. Thola i-coefficient ka xʳ/r! ukubala ukuhlela."
+  }
+}

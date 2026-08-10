@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🐦 Pigeonhole Principle",
+    "gameDesc": "The <strong>Pigeonhole Principle</strong> states: if n items are placed into m containers with n > m, then at least one container must hold more than one item. Apply this to solve guaranteed-outcome problems!"
+  },
+  "af": {
+    "gameTitle": "🐦 Duiwegat-beginsel",
+    "gameDesc": "Die <strong>Duiwegat-beginsel</strong> sê: as n items in m houers geplaas word met n > m, dan moet ten minste een houer meer as een item hou. Pas dit toe om gewaarborgde-uitkomsprobleme op te los!"
+  },
+  "zu": {
+    "gameTitle": "🐦 Umthetho Wesikhundla Sejuba",
+    "gameDesc": "<strong>Umthetho Wesikhundla Sejuba</strong> uthi: uma izinto ezingu-n zifakwa ezitsheni ezingu-m lapho n > m, okungenani isitsha esisodwa kufanele sibe nezinto ezingaphezu kweyodwa. Sebenzisa lokhu ukuxazulula izinkinga zemiphumela eqinisekisiwe!"
+  }
+}

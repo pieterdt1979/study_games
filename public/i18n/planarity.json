@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "✏️ Planarity Puzzle",
+    "gameDesc": "Drag vertices to untangle the graph so that no edges cross. If the graph is non-planar, declare it! Use Euler's formula (v - e + f = 2) and Kuratowski's theorem to reason about planarity."
+  },
+  "af": {
+    "gameTitle": "✏️ Planariteitsraaisel",
+    "gameDesc": "Sleep hoekpunte om die grafiek te ontwar sodat geen kante kruis nie. As die grafiek nie-planêr is, verklaar dit! Gebruik Euler se formule (v - e + f = 2) en Kuratowski se stelling om oor planariteit te redeneer."
+  },
+  "zu": {
+    "gameTitle": "✏️ Iphazili Ye-Planarity",
+    "gameDesc": "Hudula amaverteksi ukuze uthukulule igrafu ukuze kungabi bikho imiphetho eyonqenayo. Uma igrafu ingekho yi-planar, kumemezele! Sebenzisa iformula ka-Euler (v - e + f = 2) nesithiyo sikaKuratowski ukuze ucabange nge-planarity."
+  }
+}

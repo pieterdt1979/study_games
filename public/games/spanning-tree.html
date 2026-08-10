@@ -79,12 +79,12 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🌳 Spanning Tree Builder</h2>
+      <h2 data-i18n="gameTitle">🌳 Spanning Tree Builder</h2>
     </div>
 
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Click on edges to add them to your spanning tree. Build a tree that connects ALL vertices with <strong>minimum total weight</strong>. A spanning tree has exactly <strong>n-1 edges</strong> (where n = number of vertices) and no circuits. Use Kruskal's strategy: always pick the cheapest available edge that doesn't create a circuit!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Click on edges to add them to your spanning tree. Build a tree that connects ALL vertices with <strong>minimum total weight</strong>. A spanning tree has exactly <strong>n-1 edges</strong> (where n = number of vertices) and no circuits. Use Kruskal's strategy: always pick the cheapest available edge that doesn't create a circuit!</p>
     </div>
 
     <div class="algo-toggle">
@@ -542,6 +542,20 @@
     // Init
     loadLevel();
     window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/spanning-tree.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

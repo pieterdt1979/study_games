@@ -43,11 +43,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🔢 Recurrence Detective</h2>
+      <h2 data-i18n="gameTitle">🔢 Recurrence Detective</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>You're given the first several terms of a sequence. <strong>Identify the recurrence relation</strong>, predict the next term, and (in advanced mode) solve the recurrence by finding the characteristic equation roots. The sequence might be linear, Fibonacci-type, or inhomogeneous!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">You're given the first several terms of a sequence. <strong>Identify the recurrence relation</strong>, predict the next term, and (in advanced mode) solve the recurrence by finding the characteristic equation roots. The sequence might be linear, Fibonacci-type, or inhomogeneous!</p>
     </div>
     <div class="mode-select">
       <button class="btn btn-secondary active-mode" onclick="setMode('predict')">Predict Next Term</button>
@@ -279,6 +279,20 @@
 
     // Init
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/recurrence.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

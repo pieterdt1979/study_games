@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🌲 Tree Construction Lab",
+    "gameDesc": "Build BFS and DFS spanning trees, perform preorder/postorder/inorder traversals, and answer questions about rooted trees, m-ary trees, and Cayley's theorem."
+  },
+  "af": {
+    "gameTitle": "🌲 Boomkonstruksie-laboratorium",
+    "gameDesc": "Bou BFS- en DFS-spanbome, voer pre-orde/post-orde/in-orde deurkruisings uit, en beantwoord vrae oor gewortelde bome, m-rige bome, en Cayley se stelling."
+  },
+  "zu": {
+    "gameTitle": "🌲 Ilabhu Yokwakha Izihlahla",
+    "gameDesc": "Yakha izihlahla ezihlanganisayo ze-BFS ne-DFS, yenza ukudlula kwe-preorder/postorder/inorder, uphendule imibuzo ngezihlahla ezinempande, izihlahla ze-m-ary, nesithiyo sika-Cayley."
+  }
+}

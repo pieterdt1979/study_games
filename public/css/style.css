@@ -252,3 +252,33 @@ canvas {
   .controls { flex-direction: column; }
   .controls .btn { width: 100%; }
 }
+
+/* Language Switcher */
+#lang-switcher {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
+}
+
+#lang-switcher-select {
+  background: #16213e;
+  color: #eee;
+  border: 1px solid #2a3a5e;
+  border-radius: 6px;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+#lang-switcher-select:hover,
+#lang-switcher-select:focus {
+  border-color: #667eea;
+  outline: none;
+}
+
+@media (max-width: 768px) {
+  #lang-switcher { top: 0.5rem; right: 0.5rem; }
+  #lang-switcher-select { font-size: 0.8rem; padding: 0.3rem 0.6rem; }
+}

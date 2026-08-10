@@ -36,10 +36,10 @@
 </head>
 <body>
   <div class="container">
-    <div class="game-header"><a href="/">&#8592;</a><h2>📝 Natural Deduction Proofs</h2></div>
+    <div class="game-header"><a href="/">&#8592;</a><h2 data-i18n="gameTitle">📝 Natural Deduction Proofs</h2></div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Given premises and a conclusion, build a proof by clicking <strong>inference rules</strong> in the correct order. Each rule derives a new formula from existing lines. Complete the proof to reach the conclusion!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Given premises and a conclusion, build a proof by clicking <strong>inference rules</strong> in the correct order. Each rule derives a new formula from existing lines. Complete the proof to reach the conclusion!</p>
     </div>
     <div class="game-layout">
       <div>
@@ -205,6 +205,20 @@
     function nextProof() { proofIdx++; loadProof(); }
     function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
     loadProof();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/natural-deduction.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

@@ -1,0 +1,23 @@
+{
+  "en": {
+    "gameTitle": "🌳 Spanning Tree Builder",
+    "gameDesc": "Click on edges to add them to your spanning tree. Build a tree that connects ALL vertices with <strong>minimum total weight</strong>. A spanning tree has exactly <strong>n-1 edges</strong> (where n = number of vertices) and no circuits. Use Kruskal's strategy: always pick the cheapest available edge that doesn't create a circuit!",
+    "kruskalGuide": "Kruskal's Guide",
+    "primGuide": "Prim's Guide",
+    "edgesSorted": "Edges (sorted by weight)"
+  },
+  "af": {
+    "gameTitle": "🌳 Spanboom-bouer",
+    "gameDesc": "Klik op kante om hulle by jou spanboom te voeg. Bou 'n boom wat ALLE hoekpunte verbind met <strong>minimum totale gewig</strong>. 'n Spanboom het presies <strong>n-1 kante</strong> (waar n = aantal hoekpunte) en geen siklusse nie. Gebruik Kruskal se strategie: kies altyd die goedkoopste beskikbare kant wat nie 'n siklus skep nie!",
+    "kruskalGuide": "Kruskal se Gids",
+    "primGuide": "Prim se Gids",
+    "edgesSorted": "Kante (gesorteer volgens gewig)"
+  },
+  "zu": {
+    "gameTitle": "🌳 Umakhi Wesihlahla Esihlanganisayo",
+    "gameDesc": "Chofoza imiphetho ukuze uyengeze esihlahleni sakho esihlanganisayo. Yakha isihlahla esixhumanisa WONKE amaverteksi nge-<strong>sisindo esincane sesamba</strong>. Isihlahla esihlanganisayo sinemiphetho engango <strong>n-1</strong> (lapho n = inani lamaverteksi) futhi ayinayo imijikelo. Sebenzisa isu likaKruskal: njalo khetha umphetheso oshibhile kakhulu ongadali umjikelo!",
+    "kruskalGuide": "Umhlahlandlela kaKruskal",
+    "primGuide": "Umhlahlandlela kaPrim",
+    "edgesSorted": "Imiphetho (ihlelwe ngokwesisindo)"
+  }
+}

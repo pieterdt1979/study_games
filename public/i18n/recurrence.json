@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🔢 Recurrence Detective",
+    "gameDesc": "Identify recurrence relations from sequences, solve using characteristic equations, and handle initial conditions. Covers linear homogeneous and inhomogeneous recurrences."
+  },
+  "af": {
+    "gameTitle": "🔢 Rekurrensie-speurder",
+    "gameDesc": "Identifiseer rekurrensie-relasies uit reekse, los op met karakteristieke vergelykings, en hanteer aanvanklike voorwaardes. Dek lineêre homogene en nie-homogene rekurrensies."
+  },
+  "zu": {
+    "gameTitle": "🔢 Umcwaningi Wokufana Okubuya",
+    "gameDesc": "Khomba ukufana okubuya kusukela ezilundleni, xazulula usebenzisa izilundla zekhiyarekthristiki, uphathise izimo zokuqala. Ihlanganisa ukufana okubuya okulinganayo okufanayo nokungafani."
+  }
+}

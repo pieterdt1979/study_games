@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🌿 CFG Derivation Simulator",
+    "gameDesc": "Step through leftmost/rightmost derivations of context-free grammars. Build parse trees and detect ambiguous grammars."
+  },
+  "af": {
+    "gameTitle": "🌿 KVG Afleidings-simuleerder",
+    "gameDesc": "Stap deur linksmees/regsmees afleidings van konteksvrye grammatikas. Bou ontledingsbome en ontdek dubbelsinnige grammatikas."
+  },
+  "zu": {
+    "gameTitle": "🌿 Umlingisi Wokuphuma kwe-CFG",
+    "gameDesc": "Hamba usinyathelo ngasinye ukuphuma kwesokunxele/kwesokudla kwamagramatiki angena-konteksi. Yakha izihlahla zokuhlaziya uthole amagramatiki angaqondakali."
+  }
+}

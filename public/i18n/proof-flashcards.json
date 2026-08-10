@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "📜 Proof Flashcards",
+    "gameDesc": "Reconstruct mathematical proofs step by step. Steps are shuffled — drag or select them in the correct order to rebuild the proof."
+  },
+  "af": {
+    "gameTitle": "📜 Bewysflitskaarte",
+    "gameDesc": "Herkonstrueer wiskundige bewyse stap vir stap. Stappe is geskud — sleep of kies hulle in die korrekte volgorde om die bewys te herbou."
+  },
+  "zu": {
+    "gameTitle": "📜 Amakhadi Okufundisa Ubufakazi",
+    "gameDesc": "Phinda wakhe ubufakazi bezibalo isinyathelo ngesinyathelo. Izinyathelo zixutshiwe — hudula noma ukhethe ngokulandelana okuyikho ukuze uphinde wakhe ubufakazi."
+  }
+}

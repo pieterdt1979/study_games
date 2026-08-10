@@ -1,0 +1,359 @@
+{
+  "en": {
+    "siteTitle": "Study Games",
+    "siteSubtitle": "Learn through interactive games",
+    "searchPlaceholder": "Search... (e.g. euler, tree, regex, pumping, pigeonhole, deduction)",
+    "noResults": "No games match your search.",
+    "sectionExam": "Exam Trainers",
+    "sectionGraphs": "Graph Theory",
+    "sectionCounting": "Counting & Combinatorics",
+    "sectionFormal": "Formal Languages & Automata",
+    "sectionLogic": "Logic & Proofs",
+
+    "graphColouringTitle": "Graph Colouring Challenge",
+    "graphColouringDesc": "Colour vertices using the fewest colours so no adjacent pair shares a colour.",
+    "graphColouringUnit": "Chromatic number, Brooks' theorem",
+
+    "eulerHamiltonTitle": "Euler & Hamilton Pathfinder",
+    "eulerHamiltonDesc": "Find Euler trails/cycles (every edge once) and Hamilton circuits (every vertex once).",
+    "eulerHamiltonUnit": "Euler's theorem, Dirac's theorem",
+
+    "spanningTreeTitle": "Spanning Tree Builder",
+    "spanningTreeDesc": "Build a minimum spanning tree using Kruskal's or Prim's greedy strategy.",
+    "spanningTreeUnit": "Kruskal's & Prim's algorithms",
+
+    "isomorphismTitle": "Graph Isomorphism Matcher",
+    "isomorphismDesc": "Determine if two graphs are isomorphic by finding the vertex mapping.",
+    "isomorphismUnit": "Degree sequences, adjacency",
+
+    "planarityTitle": "Planarity Puzzle",
+    "planarityDesc": "Drag vertices to untangle a graph — or prove it's non-planar!",
+    "planarityUnit": "Euler's formula, Kuratowski",
+
+    "circleChordTitle": "Circle-Chord Trainer",
+    "circleChordDesc": "Place chords inside/outside a circuit to prove non-planarity step by step.",
+    "circleChordUnit": "Circle-chord method",
+
+    "treesTitle": "Tree Construction Lab",
+    "treesDesc": "Build BFS/DFS spanning trees, perform traversals, answer m-ary tree questions.",
+    "treesUnit": "Rooted trees, Cayley's theorem",
+
+    "codebreakerTitle": "Code Breaker (Mastermind)",
+    "codebreakerDesc": "Crack the secret code using logic and the multiplication principle.",
+    "codebreakerUnit": "Multiplication principle",
+
+    "countingQuizTitle": "Counting Challenges",
+    "countingQuizDesc": "Permutations, combinations, arrangements with repetition, distributions.",
+    "countingQuizUnit": "P(n,r), C(n,r), distributions",
+
+    "permsCombsTitle": "Permutations & Combinations",
+    "permsCombsDesc": "Bit strings, vowel/consonant arrangements, and selection problems.",
+    "permsCombsUnit": "Applied counting",
+
+    "binomialTitle": "Binomial Identity Prover",
+    "binomialDesc": "Prove identities with block walking, Pascal's triangle, and the binomial theorem.",
+    "binomialUnit": "Pascal's identity, binomial theorem",
+
+    "genFuncTitle": "Generating Function Builder",
+    "genFuncDesc": "Build OGFs and find coefficients using power series identities.",
+    "genFuncUnit": "Ordinary generating functions",
+
+    "egfTitle": "Exponential GF Lab",
+    "egfDesc": "Exponential generating functions: eˣ, cosh, sinh for arrangements.",
+    "egfUnit": "EGF, coefficient of xʳ/r!",
+
+    "recurrenceTitle": "Recurrence Detective",
+    "recurrenceDesc": "Identify recurrence relations and solve with characteristic equations.",
+    "recurrenceUnit": "Fibonacci, characteristic roots",
+
+    "inclusionExclusionTitle": "Inclusion-Exclusion Venn",
+    "inclusionExclusionDesc": "Compute unions and complements. Solve derangement problems.",
+    "inclusionExclusionUnit": "Inclusion-exclusion, derangements",
+
+    "pigeonholeTitle": "Pigeonhole Principle",
+    "pigeonholeDesc": "Guaranteed outcomes: minimum draws, birthday problems, Ramsey theory.",
+    "pigeonholeUnit": "Worst-case guarantees",
+
+    "permCyclesTitle": "Permutation Cycles",
+    "permCyclesDesc": "Cycle notation, compositions, transpositions, and even/odd parity.",
+    "permCyclesUnit": "Symmetric groups, parity",
+
+    "regexTitle": "Regular Expression Builder",
+    "regexDesc": "Write regexes to match language descriptions over {a, b}.",
+    "regexUnit": "Regex, Kleene star, FA equivalence",
+
+    "cfgTitle": "CFG Derivation Simulator",
+    "cfgDesc": "Step through derivations, build parse trees, detect ambiguity.",
+    "cfgUnit": "Context-free grammars, ambiguity",
+
+    "cnfTitle": "CNF Converter",
+    "cnfDesc": "Convert a CFG to Chomsky Normal Form: Λ-productions, unit, rewrite.",
+    "cnfUnit": "Chomsky Normal Form",
+
+    "pdaTitle": "PDA Simulator",
+    "pdaDesc": "Trace PDA execution with animated stack. Accept or reject words.",
+    "pdaUnit": "Pushdown automata, stack memory",
+
+    "pumpingTitle": "Pumping Lemma Prover",
+    "pumpingDesc": "Decompose words into uvxyz and pump to prove non-context-freeness.",
+    "pumpingUnit": "Pumping lemma for CFLs",
+
+    "hierarchyTitle": "Language Hierarchy Quiz",
+    "hierarchyDesc": "Classify languages, test closure properties, decidability questions.",
+    "hierarchyUnit": "Chomsky hierarchy, closure",
+
+    "naturalDeductionTitle": "Natural Deduction Proofs",
+    "naturalDeductionDesc": "Build formal proofs step by step using inference rules (MP, MT, DS, HS).",
+    "naturalDeductionUnit": "Inference rules, propositional logic",
+
+    "proofFlashcardsTitle": "Proof Flashcards",
+    "proofFlashcardsDesc": "Reconstruct mathematical proofs step by step from shuffled options.",
+    "proofFlashcardsUnit": "Required proofs for exams",
+
+    "proofDiscreteTitle": "Discrete Math Exam Trainer",
+    "proofDiscreteDesc": "MCQ exam prep: theorem identification, proof techniques, computation, true/false.",
+    "proofDiscreteUnit": "Exam-style multiple choice",
+
+    "proofComputationTitle": "Theory of Computation Exam Trainer",
+    "proofComputationDesc": "MCQ exam prep: CFGs, PDAs, pumping lemmas, TMs, decidability, Chomsky hierarchy.",
+    "proofComputationUnit": "Exam-style multiple choice"
+  },
+  "af": {
+    "siteTitle": "Studievaardighedespeletjies",
+    "siteSubtitle": "Leer deur interaktiewe speletjies",
+    "searchPlaceholder": "Soek... (bv. euler, boom, regex, pigeonhole, deduksie)",
+    "noResults": "Geen speletjies pas by jou soektog nie.",
+    "sectionExam": "Eksamenoefenaars",
+    "sectionGraphs": "Grafiekteorie",
+    "sectionCounting": "Telling & Kombinatoriek",
+    "sectionFormal": "Formele Tale & Outomata",
+    "sectionLogic": "Logika & Bewyse",
+
+    "graphColouringTitle": "Grafiekkleur-uitdaging",
+    "graphColouringDesc": "Kleur hoekpunte met die minste kleure sodat geen aangrensende paar dieselfde kleur deel nie.",
+    "graphColouringUnit": "Chromatiese getal, Brooks se stelling",
+
+    "eulerHamiltonTitle": "Euler & Hamilton Padzoeker",
+    "eulerHamiltonDesc": "Vind Euler-roetes/siklusse (elke kant een keer) en Hamilton-bane (elke hoekpunt een keer).",
+    "eulerHamiltonUnit": "Euler se stelling, Dirac se stelling",
+
+    "spanningTreeTitle": "Spanboom-bouer",
+    "spanningTreeDesc": "Bou 'n minimum spanboom met Kruskal of Prim se gulsige strategie.",
+    "spanningTreeUnit": "Kruskal & Prim se algoritmes",
+
+    "isomorphismTitle": "Grafiek-isomorfisme Passer",
+    "isomorphismDesc": "Bepaal of twee grafieke isomorf is deur die hoekpunt-afbeelding te vind.",
+    "isomorphismUnit": "Graadreekse, aangrensendheid",
+
+    "planarityTitle": "Planariteitsraaisel",
+    "planarityDesc": "Sleep hoekpunte om 'n grafiek te ontwar — of bewys dit is nie-planêr!",
+    "planarityUnit": "Euler se formule, Kuratowski",
+
+    "circleChordTitle": "Sirkel-koord Oefenaar",
+    "circleChordDesc": "Plaas koorde binne/buite 'n kring om nie-planariteit stap vir stap te bewys.",
+    "circleChordUnit": "Sirkel-koord metode",
+
+    "treesTitle": "Boomkonstruksie-laboratorium",
+    "treesDesc": "Bou BFS/DFS spanbome, voer deurkruisings uit, beantwoord m-rige boomvrae.",
+    "treesUnit": "Gewortelde bome, Cayley se stelling",
+
+    "codebreakerTitle": "Kodekraker (Mastermind)",
+    "codebreakerDesc": "Kraak die geheime kode met logika en die vermenigvuldigingsbeginsel.",
+    "codebreakerUnit": "Vermenigvuldigingsbeginsel",
+
+    "countingQuizTitle": "Teluitdagings",
+    "countingQuizDesc": "Permutasies, kombinasies, rangskikkings met herhaling, verdelings.",
+    "countingQuizUnit": "P(n,r), C(n,r), verdelings",
+
+    "permsCombsTitle": "Permutasies & Kombinasies",
+    "permsCombsDesc": "Bitstringetjies, klinker/medeklinker-rangskikkings, en seleksieprobleme.",
+    "permsCombsUnit": "Toegepaste telling",
+
+    "binomialTitle": "Binomiale Identiteitbewys",
+    "binomialDesc": "Bewys identiteite met blokstap, Pascal se driehoek, en die binomiale stelling.",
+    "binomialUnit": "Pascal se identiteit, binomiale stelling",
+
+    "genFuncTitle": "Genererende Funksie-bouer",
+    "genFuncDesc": "Bou OGF's en vind koëffisiënte met magreeks-identiteite.",
+    "genFuncUnit": "Gewone genererende funksies",
+
+    "egfTitle": "Eksponensiële GF Laboratorium",
+    "egfDesc": "Eksponensiële genererende funksies: eˣ, cosh, sinh vir rangskikkings.",
+    "egfUnit": "EGF, koëffisiënt van xʳ/r!",
+
+    "recurrenceTitle": "Rekurrensie-speurder",
+    "recurrenceDesc": "Identifiseer rekurrensie-relasies en los op met karakteristieke vergelykings.",
+    "recurrenceUnit": "Fibonacci, karakteristieke wortels",
+
+    "inclusionExclusionTitle": "Insluiting-Uitsluiting Venn",
+    "inclusionExclusionDesc": "Bereken verenigings en komplemente. Los ontrangskikkingsprobleme op.",
+    "inclusionExclusionUnit": "Insluiting-uitsluiting, ontrangskikkings",
+
+    "pigeonholeTitle": "Duiwegat-beginsel",
+    "pigeonholeDesc": "Gewaarborgde uitkomste: minimum trekkings, verjaarsdagprobleme, Ramsey-teorie.",
+    "pigeonholeUnit": "Ergste-geval waarborge",
+
+    "permCyclesTitle": "Permutasiesiklusse",
+    "permCyclesDesc": "Siklusnotasie, samestellings, transposisies, en ewe/onewe pariteit.",
+    "permCyclesUnit": "Simmetriese groepe, pariteit",
+
+    "regexTitle": "Regulêre Uitdrukking-bouer",
+    "regexDesc": "Skryf regexe om taalbeskrywings oor {a, b} te pas.",
+    "regexUnit": "Regex, Kleene-ster, FA-ekwivalensie",
+
+    "cfgTitle": "KVG Afleidings-simuleerder",
+    "cfgDesc": "Stap deur afleidings, bou ontledingsbome, ontdek dubbelsinnigheid.",
+    "cfgUnit": "Konteksvrye grammatikas, dubbelsinnigheid",
+
+    "cnfTitle": "CNF-omskakelaar",
+    "cnfDesc": "Skakel 'n KVG om na Chomsky Normaalvorm: Λ-produksies, eenheid, herskryf.",
+    "cnfUnit": "Chomsky Normaalvorm",
+
+    "pdaTitle": "PDA-simuleerder",
+    "pdaDesc": "Volg PDA-uitvoering met geanimeerde stapel. Aanvaar of verwerp woorde.",
+    "pdaUnit": "Afstapeloutomata, stapelgeheue",
+
+    "pumpingTitle": "Pomplemma-bewys",
+    "pumpingDesc": "Ontbind woorde in uvxyz en pomp om nie-konteksvryheid te bewys.",
+    "pumpingUnit": "Pomplemma vir KVT",
+
+    "hierarchyTitle": "Taalhiërargie-vasvra",
+    "hierarchyDesc": "Klassifiseer tale, toets sluitingseienskappe, beslisbaarheid.",
+    "hierarchyUnit": "Chomsky-hiërargie, sluiting",
+
+    "naturalDeductionTitle": "Natuurlike Deduksie-bewyse",
+    "naturalDeductionDesc": "Bou formele bewyse stap vir stap met afleidingsreëls (MP, MT, DS, HS).",
+    "naturalDeductionUnit": "Afleidingsreëls, proposisionele logika",
+
+    "proofFlashcardsTitle": "Bewysflitskaarte",
+    "proofFlashcardsDesc": "Herkonstrueer wiskundige bewyse stap vir stap uit geskudde opsies.",
+    "proofFlashcardsUnit": "Vereiste bewyse vir eksamens",
+
+    "proofDiscreteTitle": "Diskrete Wiskunde Eksamenoefenaar",
+    "proofDiscreteDesc": "MVK eksamenvoorbereiding: stellingidentifikasie, bewystegnieke, berekening, waar/vals.",
+    "proofDiscreteUnit": "Eksamen-styl meervoudige keuse",
+
+    "proofComputationTitle": "Berekenbaarheid Eksamenoefenaar",
+    "proofComputationDesc": "MVK eksamenvoorbereiding: KVG's, PDA's, pomplemmas, TM's, beslisbaarheid, Chomsky-hiërargie.",
+    "proofComputationUnit": "Eksamen-styl meervoudige keuse"
+  },
+  "zu": {
+    "siteTitle": "Imidlalo Yokufunda",
+    "siteSubtitle": "Funda ngokudlala imidlalo esebenzayo",
+    "searchPlaceholder": "Sesha... (isib. euler, isihlahla, regex, pigeonhole, ukuphetha)",
+    "noResults": "Ayikho imidlalo ehambisana nokusesha kwakho.",
+    "sectionExam": "Abasebenzisi Bokuhlolwa",
+    "sectionGraphs": "Ithiyori Yamagrafu",
+    "sectionCounting": "Ukubala & Ikombinatoriki",
+    "sectionFormal": "Izilimi Ezisemthethweni & Ama-Otomatha",
+    "sectionLogic": "Ilogikhi & Ubufakazi",
+
+    "graphColouringTitle": "Inselele Yokucwebisa Igrafu",
+    "graphColouringDesc": "Cwecwesa amaverteksi usebenzisa imibala emincane ukuze kungabi khona ababili abasondelene abanombala ofanayo.",
+    "graphColouringUnit": "Inombolo yekhromatiki, isithiyo sika-Brooks",
+
+    "eulerHamiltonTitle": "Umsebenzi Ka-Euler noHamilton",
+    "eulerHamiltonDesc": "Thola izindlela zika-Euler (yonke imiphetho kanye) nezindlela zika-Hamilton (yonke amaverteksi kanye).",
+    "eulerHamiltonUnit": "Isithiyo sika-Euler, isithiyo sika-Dirac",
+
+    "spanningTreeTitle": "Umakhi Wesihlahla Esihlanganisayo",
+    "spanningTreeDesc": "Yakha isihlahla esihlanganisayo esincane usebenzisa isu lika-Kruskal noma elika-Prim.",
+    "spanningTreeUnit": "Ama-algorithimu ka-Kruskal noPrim",
+
+    "isomorphismTitle": "Umfanisi We-Isomorphism Yamagrafu",
+    "isomorphismDesc": "Nquma ukuthi amagrafu amabili ayafana ngokuthola ukuhlangana kwamaverteksi.",
+    "isomorphismUnit": "Izilundla zezinga, ukusondelana",
+
+    "planarityTitle": "Iphazili Ye-Planarity",
+    "planarityDesc": "Hudula amaverteksi ukuze uthukulule igrafu — noma ufakazele ukuthi ayi-planar!",
+    "planarityUnit": "Iformula ka-Euler, uKuratowski",
+
+    "circleChordTitle": "Umsebenzisi Wesikali Sendilinga",
+    "circleChordDesc": "Beka izikali ngaphakathi/ngaphandle kwesikali ukuze ufakazele ukungabi yi-planar isinyathelo ngesinyathelo.",
+    "circleChordUnit": "Indlela yesikali sendilinga",
+
+    "treesTitle": "Ilabhu Yokwakha Izihlahla",
+    "treesDesc": "Yakha izihlahla ze-BFS/DFS, yenza ukudlula, uphendule imibuzo yezihlahla.",
+    "treesUnit": "Izihlahla ezinempande, isithiyo sika-Cayley",
+
+    "codebreakerTitle": "Umphuli Wekhodi (Mastermind)",
+    "codebreakerDesc": "Phula ikhodi eyimfihlo usebenzisa ilogikhi nomthetho wokuphindaphinda.",
+    "codebreakerUnit": "Umthetho wokuphindaphinda",
+
+    "countingQuizTitle": "Izinselele Zokubala",
+    "countingQuizDesc": "Amaphermutheshini, amakombineshini, ukuhlelwa ngokuphindaphinda, ukwabiwa.",
+    "countingQuizUnit": "P(n,r), C(n,r), ukwabiwa",
+
+    "permsCombsTitle": "Amaphermutheshini & Amakombineshini",
+    "permsCombsDesc": "Izintambo zamabhithi, ukuhlela amavaweli/amakhonsonanti, nezinkinga zokukhetha.",
+    "permsCombsUnit": "Ukubala okusetshenziswayo",
+
+    "binomialTitle": "Umfakazeli Wobunikazi Be-Binomial",
+    "binomialDesc": "Fakazela ubunikazi ngokuhamba ngamabhulokhi, unxantathu kaPascal, nesithiyo se-binomial.",
+    "binomialUnit": "Ubunikazi bukaPascal, isithiyo se-binomial",
+
+    "genFuncTitle": "Umakhi Wemisebenzi Evelayo",
+    "genFuncDesc": "Yakha ama-OGF uthole ama-coefficient usebenzisa ubunikazi bezilundla zamandla.",
+    "genFuncUnit": "Imisebenzi evelayo ejwayelekile",
+
+    "egfTitle": "Ilabhu ye-EGF",
+    "egfDesc": "Imisebenzi evelayo ye-exponential: eˣ, cosh, sinh yokuhlela.",
+    "egfUnit": "EGF, i-coefficient ka xʳ/r!",
+
+    "recurrenceTitle": "Umcwaningi Wokufana Okubuya",
+    "recurrenceDesc": "Khomba ukufana okubuya bese uxazulula ngezilundla zekhiyarekthristiki.",
+    "recurrenceUnit": "UFibonacci, izimpande zekhiyarekthristiki",
+
+    "inclusionExclusionTitle": "Ukufaka-Ukukhipha Venn",
+    "inclusionExclusionDesc": "Bala izinyunyana namakhomplimenti. Xazulula izinkinga zokuphazamisa.",
+    "inclusionExclusionUnit": "Ukufaka-ukukhipha, ukuphazamisa",
+
+    "pigeonholeTitle": "Umthetho Wesikhundla Sejuba",
+    "pigeonholeDesc": "Imiphumela eqinisekisiwe: ukudonswa okuncane, izinkinga zosuku lokuzalwa, ithiyori kaRamsey.",
+    "pigeonholeUnit": "Iziqiniseko zesimo esibi kakhulu",
+
+    "permCyclesTitle": "Amasayikili Amaphermutheshini",
+    "permCyclesDesc": "Ukubhalwa kwesayikili, izinhlanganiso, ama-transposition, ne-parity elinganayo/engalingani.",
+    "permCyclesUnit": "Amaqembu asimethri, i-parity",
+
+    "regexTitle": "Umakhi We-Regular Expression",
+    "regexDesc": "Bhala ama-regex ukuze uhambisane nezincazelo zolimi ku {a, b}.",
+    "regexUnit": "Regex, inkanyezi kaKleene, ukuhlangana kwe-FA",
+
+    "cfgTitle": "Umlingisi Wokuphuma kwe-CFG",
+    "cfgDesc": "Hamba usinyathelo ngasinye ekuphumeni, yakha izihlahla zokuhlaziya, thola ukungaqondakali.",
+    "cfgUnit": "Amagramatiki angena-konteksi, ukungaqondakali",
+
+    "cnfTitle": "Umguquli we-CNF",
+    "cnfDesc": "Guqula i-CFG ibe yi-Chomsky Normal Form: ama-Λ-production, iyunithi, ukubhala kabusha.",
+    "cnfUnit": "IChomsky Normal Form",
+
+    "pdaTitle": "Umlingisi we-PDA",
+    "pdaDesc": "Landela ukusebenza kwe-PDA ngesitaki esinyakazayo. Amukela noma enqabe amagama.",
+    "pdaUnit": "Ama-pushdown automata, inkumbulo yesitaki",
+
+    "pumpingTitle": "Umfakazeli Womthetho Wokupompa",
+    "pumpingDesc": "Hlukanisa amagama abe yi-uvxyz bese upompa ukuze ufakazele ukungabi yikonteksi-fri.",
+    "pumpingUnit": "Umthetho wokupompa wama-CFL",
+
+    "hierarchyTitle": "Ukuhlolwa Kwezinga Lezilimi",
+    "hierarchyDesc": "Hlukanisa izilimi, hlola izakhiwo zokuvala, imibuzo yokunqunywa.",
+    "hierarchyUnit": "Izinga likaChomsky, ukuvala",
+
+    "naturalDeductionTitle": "Ubufakazi Bedidakshini Yemvelo",
+    "naturalDeductionDesc": "Yakha ubufakazi obuhlelekilé isinyathelo ngesinyathelo usebenzisa imithetho yokuphetha (MP, MT, DS, HS).",
+    "naturalDeductionUnit": "Imithetho yokuphetha, ilogikhi ye-propositional",
+
+    "proofFlashcardsTitle": "Amakhadi Okufundisa Ubufakazi",
+    "proofFlashcardsDesc": "Phinda wakhe ubufakazi bezibalo isinyathelo ngesinyathelo usebenzisa izinketho ezixutshiwe.",
+    "proofFlashcardsUnit": "Ubufakazi obudingekayo ezivikelweni",
+
+    "proofDiscreteTitle": "Umsebenzisi Wokuhlolwa Kwezibalo Ezihlukanisiwe",
+    "proofDiscreteDesc": "Ukulungiselela ukuhlolwa kwe-MCQ: ukukhomba isithiyo, izindlela zobufakazi, ukubala, iqiniso/amanga.",
+    "proofDiscreteUnit": "Ukukhetha okuningi okungesimo sokuhlolwa",
+
+    "proofComputationTitle": "Umsebenzisi Wokuhlolwa Kwethiyori Yokubala",
+    "proofComputationDesc": "Ukulungiselela ukuhlolwa kwe-MCQ: ama-CFG, ama-PDA, imithetho yokupompa, ama-TM, ukunqunywa, izinga likaChomsky.",
+    "proofComputationUnit": "Ukukhetha okuningi okungesimo sokuhlolwa"
+  }
+}

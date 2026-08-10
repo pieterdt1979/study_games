@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🛤️ Euler & Hamilton Pathfinder",
+    "gameDesc": "Click vertices to build a path. In <strong>Euler mode</strong>, traverse every <em>edge</em> exactly once. In <strong>Hamilton mode</strong>, visit every <em>vertex</em> exactly once and return to start. Right-click to undo the last step."
+  },
+  "af": {
+    "gameTitle": "🛤️ Euler & Hamilton Padzoeker",
+    "gameDesc": "Klik op hoekpunte om 'n pad te bou. In <strong>Euler-modus</strong>, deurkruis elke <em>kant</em> presies een keer. In <strong>Hamilton-modus</strong>, besoek elke <em>hoekpunt</em> presies een keer en keer terug na die begin. Regskliek om die laaste stap te ontdoen."
+  },
+  "zu": {
+    "gameTitle": "🛤️ Umsebenzi Ka-Euler noHamilton",
+    "gameDesc": "Chofoza amaverteksi ukuze wakhe indlela. Ku-<strong>imodi ka-Euler</strong>, dlula yonke <em>imiphetho</em> kanye kuphela. Ku-<strong>imodi kaHamilton</strong>, vakashela wonke <em>amaverteksi</em> kanye kuphela bese ubuyela ekuqaleni. Chofoza ngakwesokudla ukuze ubuyisele isinyathelo sokugcina."
+  }
+}

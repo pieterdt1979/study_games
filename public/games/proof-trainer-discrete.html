@@ -39,7 +39,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="game-header"><a href="/">&#8592;</a><h2>🎓 Discrete Math Exam Trainer</h2></div>
+    <div class="game-header"><a href="/">&#8592;</a><h2 data-i18n="gameTitle">🎓 Discrete Math Exam Trainer</h2></div>
     <div class="game-info">
       <h4>Exam-style multiple choice (5 options, A–E)</h4>
       <p>Modelled on the Oct/Nov 2025 paper format: 26 MCQ questions covering graph theory (~40%) and counting/combinatorics (~60%). Questions test reasoning about multiple statements, not just computation.</p>
@@ -324,6 +324,20 @@
   setInterval(()=>{if(!ans||qi<qs.length){const e=Math.floor((Date.now()-startTime)/1000);document.getElementById('timeVal').textContent=`${Math.floor(e/60)}:${String(e%60).padStart(2,'0')}`;}},1000);
 
   reset();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/proof-trainer-discrete.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

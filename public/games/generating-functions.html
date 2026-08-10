@@ -44,11 +44,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>📐 Generating Function Builder</h2>
+      <h2 data-i18n="gameTitle">📐 Generating Function Builder</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Given a counting problem, identify the correct <strong>generating function</strong> and then find the
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Given a counting problem, identify the correct <strong>generating function</strong> and then find the
       <strong>coefficient of xʳ</strong> which gives the answer. Build the GF by selecting factors, then compute the coefficient!</p>
     </div>
     <div class="game-layout">
@@ -213,6 +213,20 @@
 
     document.getElementById('coeffAnswer').addEventListener('keydown', e => { if (e.key==='Enter') checkAnswer(); });
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/generating-functions.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

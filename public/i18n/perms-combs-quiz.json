@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🎯 Permutations & Combinations",
+    "gameDesc": "Practice permutation and combination problems: bit strings, vowel/consonant arrangements, committee selection, and more."
+  },
+  "af": {
+    "gameTitle": "🎯 Permutasies & Kombinasies",
+    "gameDesc": "Oefen permutasie- en kombinasieprobleme: bitstringetjies, klinker/medeklinker-rangskikkings, komiteeseleksie, en meer."
+  },
+  "zu": {
+    "gameTitle": "🎯 Amaphermutheshini & Amakombineshini",
+    "gameDesc": "Zijwayeze izinkinga zamaphermutheshini namakombineshini: izintambo zamabhithi, ukuhlela amavaweli/amakhonsonanti, ukukhetha ikomidi, nokunye okuningi."
+  }
+}

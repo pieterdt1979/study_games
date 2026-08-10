@@ -31,11 +31,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🌲 Tree Construction Lab</h2>
+      <h2 data-i18n="gameTitle">🌲 Tree Construction Lab</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p><strong>BFS/DFS mode:</strong> Build a spanning tree by clicking vertices in the correct order.
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc"><strong>BFS/DFS mode:</strong> Build a spanning tree by clicking vertices in the correct order.
       <strong>Traversal mode:</strong> Given a rooted tree, click vertices in preorder, postorder, or inorder.
       <strong>Properties mode:</strong> Answer questions about m-ary trees (leaves, height, Cayley's theorem).</p>
     </div>
@@ -312,6 +312,20 @@
 
     loadLevel();
     window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/trees.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

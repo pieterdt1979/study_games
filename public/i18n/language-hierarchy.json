@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🏛️ Language Hierarchy Quiz",
+    "gameDesc": "Classify languages in the Chomsky hierarchy, test closure properties of language classes, and answer decidability questions about Turing machines."
+  },
+  "af": {
+    "gameTitle": "🏛️ Taalhiërargie-vasvra",
+    "gameDesc": "Klassifiseer tale in die Chomsky-hiërargie, toets sluitingseienskappe van taalklasse, en beantwoord beslisbaarheidsvrae oor Turing-masjiene."
+  },
+  "zu": {
+    "gameTitle": "🏛️ Ukuhlolwa Kwezinga Lezilimi",
+    "gameDesc": "Hlukanisa izilimi ku-Chomsky hierarchy, hlola izakhiwo zokuvala zamaqoqo ezilimi, uphendule imibuzo yokunqunywa ngama-Turing machines."
+  }
+}

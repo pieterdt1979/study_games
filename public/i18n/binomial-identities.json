@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🧱 Binomial Identity Prover",
+    "gameDesc": "Prove binomial identities using block walking arguments, Pascal's triangle, the binomial theorem, and Vandermonde's identity."
+  },
+  "af": {
+    "gameTitle": "🧱 Binomiale Identiteitbewys",
+    "gameDesc": "Bewys binomiale identiteite deur blokstap-argumente, Pascal se driehoek, die binomiale stelling, en Vandermonde se identiteit te gebruik."
+  },
+  "zu": {
+    "gameTitle": "🧱 Umfakazeli Wobunikazi Be-Binomial",
+    "gameDesc": "Fakazela ubunikazi be-binomial usebenzisa ama-arguments okuhamba ngamabhulokhi, unxantathu kaPascal, isithiyo se-binomial, nobunikazi bukaVandermonde."
+  }
+}

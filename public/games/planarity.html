@@ -63,12 +63,12 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>✏️ Planarity Puzzle</h2>
+      <h2 data-i18n="gameTitle">✏️ Planarity Puzzle</h2>
     </div>
 
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p><strong>Drag vertices</strong> to rearrange the graph so that <strong>no two edges cross</strong>. If the graph is planar, you can always untangle it! If it's non-planar (contains a K₅ or K₃,₃ configuration), click "Non-Planar!" to declare it impossible. Use Euler's formula corollary: if e > 3v - 6, the graph CANNOT be planar.</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc"><strong>Drag vertices</strong> to rearrange the graph so that <strong>no two edges cross</strong>. If the graph is planar, you can always untangle it! If it's non-planar (contains a K₅ or K₃,₃ configuration), click "Non-Planar!" to declare it impossible. Use Euler's formula corollary: if e > 3v - 6, the graph CANNOT be planar.</p>
     </div>
 
     <div class="game-layout">
@@ -468,6 +468,20 @@
     resizeCanvas();
     loadLevel();
     window.addEventListener('resize', () => { resizeCanvas(); clampVertices(); draw(); });
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/planarity.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

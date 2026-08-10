@@ -31,11 +31,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>⭕ Circle-Chord Trainer</h2>
+      <h2 data-i18n="gameTitle">⭕ Circle-Chord Trainer</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>The <strong>circle-chord method</strong> proves a graph is non-planar. Steps: (1) Find a Hamilton circuit and draw it as a circle. (2) The remaining edges become <strong>chords</strong>. (3) Place each chord <strong>inside</strong> or <strong>outside</strong> the circle. (4) If two chords on the same side cross, they <strong>conflict</strong>. If ALL placements lead to conflict, the graph is non-planar!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">The <strong>circle-chord method</strong> proves a graph is non-planar. Steps: (1) Find a Hamilton circuit and draw it as a circle. (2) The remaining edges become <strong>chords</strong>. (3) Place each chord <strong>inside</strong> or <strong>outside</strong> the circle. (4) If two chords on the same side cross, they <strong>conflict</strong>. If ALL placements lead to conflict, the graph is non-planar!</p>
     </div>
     <div class="game-layout">
       <div>
@@ -357,6 +357,20 @@
     resizeCanvas();
     loadLevel();
     window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/circle-chord.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

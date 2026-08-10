@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🔄 Permutation Cycles",
+    "gameDesc": "Work with permutations in cycle notation: compose permutations, decompose into transpositions, and determine even/odd parity."
+  },
+  "af": {
+    "gameTitle": "🔄 Permutasiesiklusse",
+    "gameDesc": "Werk met permutasies in siklusnotasie: stel permutasies saam, ontbind in transposisies, en bepaal ewe/onewe pariteit."
+  },
+  "zu": {
+    "gameTitle": "🔄 Amasayikili Amaphermutheshini",
+    "gameDesc": "Sebenza namaphermutheshini ngokubhalwa kwesayikili: hlanganisa amaphermutheshini, hlukanisa abe ama-transposition, unqume i-parity elinganayo/engalingani."
+  }
+}

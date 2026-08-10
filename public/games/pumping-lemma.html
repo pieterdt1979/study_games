@@ -34,10 +34,10 @@
 </head>
 <body>
   <div class="container">
-    <div class="game-header"><a href="/">&#8592;</a><h2>💪 Pumping Lemma Prover</h2></div>
+    <div class="game-header"><a href="/">&#8592;</a><h2 data-i18n="gameTitle">💪 Pumping Lemma Prover</h2></div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Prove a language is <strong>non-context-free</strong> using the pumping lemma. Choose a word, decompose it into
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Prove a language is <strong>non-context-free</strong> using the pumping lemma. Choose a word, decompose it into
       <span class="color-u">u</span><span class="color-v">v</span><span class="color-x">x</span><span class="color-y">y</span><span class="color-z">z</span>,
       and show that pumping produces a word NOT in the language. You must show this for ALL decompositions!</p>
     </div>
@@ -148,6 +148,20 @@
     function nextProblem() { levelIdx++; loadProblem(); }
     function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/pumping-lemma.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

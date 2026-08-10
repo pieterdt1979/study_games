@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🎓 Theory of Computation Exam Trainer",
+    "gameDesc": "MCQ exam prep covering CFGs, PDAs, pumping lemmas, Turing machines, decidability, and the Chomsky hierarchy."
+  },
+  "af": {
+    "gameTitle": "🎓 Berekenbaarheid Eksamenoefenaar",
+    "gameDesc": "MVK eksamenvoorbereiding wat KVG's, PDA's, pomplemmas, Turing-masjiene, beslisbaarheid, en die Chomsky-hiërargie dek."
+  },
+  "zu": {
+    "gameTitle": "🎓 Umsebenzisi Wokuhlolwa Kwethiyori Yokubala",
+    "gameDesc": "Ukulungiselela ukuhlolwa kwe-MCQ kuhlanganisa ama-CFG, ama-PDA, imithetho yokupompa, ama-Turing machines, ukunqunywa, nezinga likaChomsky."
+  }
+}

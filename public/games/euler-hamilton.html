@@ -65,12 +65,12 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🛤️ Euler & Hamilton Pathfinder</h2>
+      <h2 data-i18n="gameTitle">🛤️ Euler & Hamilton Pathfinder</h2>
     </div>
 
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Click vertices to build a path. In <strong>Euler mode</strong>, traverse every <em>edge</em> exactly once. In <strong>Hamilton mode</strong>, visit every <em>vertex</em> exactly once and return to start. Right-click to undo the last step.</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Click vertices to build a path. In <strong>Euler mode</strong>, traverse every <em>edge</em> exactly once. In <strong>Hamilton mode</strong>, visit every <em>vertex</em> exactly once and return to start. Right-click to undo the last step.</p>
     </div>
 
     <div class="mode-select">
@@ -596,6 +596,20 @@
     // Init
     loadLevel();
     window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/euler-hamilton.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

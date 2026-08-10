@@ -48,11 +48,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🧱 Binomial Identity Prover</h2>
+      <h2 data-i18n="gameTitle">🧱 Binomial Identity Prover</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p><strong>Block Walking:</strong> C(n,r) = number of paths from (0,0) to (r, n-r) using only right (→) and up (↑) steps.
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc"><strong>Block Walking:</strong> C(n,r) = number of paths from (0,0) to (r, n-r) using only right (→) and up (↑) steps.
       Click grid cells to trace a path. <strong>Pascal's Triangle:</strong> Select entries that sum to prove an identity.
       <strong>Evaluate:</strong> Compute values using the binomial theorem.</p>
     </div>
@@ -300,6 +300,20 @@
     function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
 
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/binomial-identities.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

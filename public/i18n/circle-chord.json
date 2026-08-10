@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "⭕ Circle-Chord Trainer",
+    "gameDesc": "Use the circle-chord method to prove a graph is non-planar. Place vertices on a circle along a Hamilton circuit, then determine which chords must cross — proving a K₃,₃ or K₅ subdivision exists."
+  },
+  "af": {
+    "gameTitle": "⭕ Sirkel-koord Oefenaar",
+    "gameDesc": "Gebruik die sirkel-koord metode om te bewys dat 'n grafiek nie-planêr is. Plaas hoekpunte op 'n sirkel langs 'n Hamilton-kring, bepaal dan watter koorde moet kruis — en bewys dat 'n K₃,₃ of K₅ onderverdeling bestaan."
+  },
+  "zu": {
+    "gameTitle": "⭕ Umsebenzisi Wesikali Sendilinga",
+    "gameDesc": "Sebenzisa indlela yesikali sendilinga ukuze ufakazele ukuthi igrafu ayiyo yi-planar. Beka amaverteksi endilinga ngendlela yeHamilton, bese unquma ukuthi yimaphi amasikali okufanele onqane — ufakazele ukuthi kukhona ukuhlukaniswa kwe-K₃,₃ noma K₅."
+  }
+}

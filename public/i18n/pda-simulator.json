@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "📚 PDA Simulator",
+    "gameDesc": "Trace PDA (pushdown automaton) execution with animated stack operations. Test input words and see whether the PDA accepts or rejects them."
+  },
+  "af": {
+    "gameTitle": "📚 PDA-simuleerder",
+    "gameDesc": "Volg PDA (afstapeloutomaat) uitvoering met geanimeerde stapel-operasies. Toets invoerwoorde en sien of die PDA hulle aanvaar of verwerp."
+  },
+  "zu": {
+    "gameTitle": "📚 Umlingisi we-PDA",
+    "gameDesc": "Landela ukusebenza kwe-PDA (i-pushdown automaton) ngemisebenzi yesitaki enyakazayo. Hlola amagama okufaka ubone ukuthi i-PDA iyawamukela noma iyawenqaba."
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "⚙️ Regular Expression Builder",
+    "gameDesc": "Write regular expressions to match language descriptions over the alphabet {a, b}. Use Kleene star (*), union (+), and concatenation to define patterns."
+  },
+  "af": {
+    "gameTitle": "⚙️ Regulêre Uitdrukking-bouer",
+    "gameDesc": "Skryf regulêre uitdrukkings om taalbeskrywings oor die alfabet {a, b} te pas. Gebruik Kleene-ster (*), vereniging (+), en samevoeging om patrone te definieer."
+  },
+  "zu": {
+    "gameTitle": "⚙️ Umakhi We-Regular Expression",
+    "gameDesc": "Bhala ama-regular expression ukuze ahambisane nezincazelo zolimi ku-alphabet {a, b}. Sebenzisa inkanyezi kaKleene (*), inyunyana (+), nokuhlangana ukuchaza amaphethini."
+  }
+}

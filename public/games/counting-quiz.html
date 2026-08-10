@@ -133,12 +133,12 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🧮 Counting Challenges</h2>
+      <h2 data-i18n="gameTitle">🧮 Counting Challenges</h2>
     </div>
 
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Solve counting problems using permutations, combinations, the multiplication principle, and arrangements with repetition. Select or type your answer and check if you're right!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Solve counting problems using permutations, combinations, the multiplication principle, and arrangements with repetition. Select or type your answer and check if you're right!</p>
     </div>
 
     <div class="game-layout">
@@ -382,6 +382,20 @@
 
     // Init
     loadQuestion();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/counting-quiz.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

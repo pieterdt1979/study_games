@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "📝 Natural Deduction Proofs",
+    "gameDesc": "Build formal proofs step by step using inference rules: Modus Ponens (MP), Modus Tollens (MT), Disjunctive Syllogism (DS), and Hypothetical Syllogism (HS)."
+  },
+  "af": {
+    "gameTitle": "📝 Natuurlike Deduksie-bewyse",
+    "gameDesc": "Bou formele bewyse stap vir stap met afleidingsreëls: Modus Ponens (MP), Modus Tollens (MT), Disjunktiewe Sillogisme (DS), en Hipotetiese Sillogisme (HS)."
+  },
+  "zu": {
+    "gameTitle": "📝 Ubufakazi Bedidakshini Yemvelo",
+    "gameDesc": "Yakha ubufakazi obuhlelekilé isinyathelo ngesinyathelo usebenzisa imithetho yokuphetha: Modus Ponens (MP), Modus Tollens (MT), Disjunctive Syllogism (DS), ne-Hypothetical Syllogism (HS)."
+  }
+}

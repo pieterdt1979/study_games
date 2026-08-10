@@ -44,11 +44,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🌿 CFG Derivation Simulator</h2>
+      <h2 data-i18n="gameTitle">🌿 CFG Derivation Simulator</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Click a <strong style="color:#f39c12">nonterminal</strong> in the working string, then choose a production to apply.
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Click a <strong style="color:#f39c12">nonterminal</strong> in the working string, then choose a production to apply.
       Derive a word (string of terminals only). Try to derive the target word, or explore freely!</p>
     </div>
     <div class="game-layout">
@@ -235,6 +235,20 @@
     function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
 
     loadGrammar();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/cfg-derivation.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

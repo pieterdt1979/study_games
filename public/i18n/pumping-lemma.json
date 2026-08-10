@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "💪 Pumping Lemma Prover",
+    "gameDesc": "Use the pumping lemma to prove languages are not context-free. Decompose words into uvxyz and show that pumping leads to a contradiction."
+  },
+  "af": {
+    "gameTitle": "💪 Pomplemma-bewys",
+    "gameDesc": "Gebruik die pomplemma om te bewys dat tale nie konteksvry is nie. Ontbind woorde in uvxyz en wys dat pomping tot 'n teenstrydigheid lei."
+  },
+  "zu": {
+    "gameTitle": "💪 Umfakazeli Womthetho Wokupompa",
+    "gameDesc": "Sebenzisa umthetho wokupompa ukufakazela ukuthi izilimi aziyona ikonteksi-fri. Hlukanisa amagama abe yi-uvxyz ukhombise ukuthi ukupompa kuholela ekuphikisaneni."
+  }
+}

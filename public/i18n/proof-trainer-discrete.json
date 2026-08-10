@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🎓 Discrete Math Exam Trainer",
+    "gameDesc": "Multiple choice exam preparation covering graph theory, counting, proof techniques, and theorem identification. Practice with exam-style questions."
+  },
+  "af": {
+    "gameTitle": "🎓 Diskrete Wiskunde Eksamenoefenaar",
+    "gameDesc": "Meervoudige keuse eksamenvoorbereiding wat grafiekteorie, telling, bewystegnieke, en stellingidentifikasie dek. Oefen met eksamen-styl vrae."
+  },
+  "zu": {
+    "gameTitle": "🎓 Umsebenzisi Wokuhlolwa Kwezibalo Ezihlukanisiwe",
+    "gameDesc": "Ukulungiselela ukuhlolwa ngokukhetha okuningi kuhlanganisa ithiyori yamagrafu, ukubala, izindlela zobufakazi, nokuthola izithiyo. Zijwayeze ngemibuzo yesimo sokuhlolwa."
+  }
+}

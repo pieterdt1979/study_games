@@ -43,11 +43,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>📜 Proof Flashcards</h2>
+      <h2 data-i18n="gameTitle">📜 Proof Flashcards</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>A theorem is displayed. Reconstruct its proof by selecting steps <strong>in the correct order</strong> from the shuffled choices below. Each step builds on the previous one. This trains you to reproduce proofs in exams!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">A theorem is displayed. Reconstruct its proof by selecting steps <strong>in the correct order</strong> from the shuffled choices below. Each step builds on the previous one. This trains you to reproduce proofs in exams!</p>
     </div>
     <div class="game-layout">
       <div>
@@ -311,6 +311,20 @@
     function showMessage(t, type) { document.getElementById('message').innerHTML = `<div class="message message-${type}">${t}</div>`; }
 
     loadProof();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/proof-flashcards.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

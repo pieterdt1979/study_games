@@ -40,11 +40,11 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🔧 CNF Converter</h2>
+      <h2 data-i18n="gameTitle">🔧 CNF Converter</h2>
     </div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Convert a CFG to <strong>Chomsky Normal Form</strong> step by step. Each step builds on the previous.
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Convert a CFG to <strong>Chomsky Normal Form</strong> step by step. Each step builds on the previous.
       The three steps (in order): <strong>1.</strong> Eliminate Λ-productions, <strong>2.</strong> Eliminate unit productions,
       <strong>3.</strong> Rewrite in CNF form (A→BC or A→a).</p>
     </div>
@@ -180,6 +180,20 @@
     function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
 
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/cnf-converter.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

@@ -85,12 +85,12 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🎨 Graph Colouring Challenge</h2>
+      <h2 data-i18n="gameTitle">🎨 Graph Colouring Challenge</h2>
     </div>
 
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Select a colour from the palette, then click a vertex to colour it. Your goal: colour every vertex so that <strong>no two adjacent vertices share the same colour</strong>, using as few colours as possible. The minimum number needed is called the <strong>chromatic number χ(G)</strong>.</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Select a colour from the palette, then click a vertex to colour it. Your goal: colour every vertex so that <strong>no two adjacent vertices share the same colour</strong>, using as few colours as possible. The minimum number needed is called the <strong>chromatic number χ(G)</strong>.</p>
     </div>
 
     <div class="game-layout">
@@ -429,6 +429,20 @@
     initPalette();
     loadLevel(0);
     window.addEventListener('resize', () => { resizeCanvas(); draw(); });
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/graph-colouring.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

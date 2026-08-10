@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🔧 CNF Converter",
+    "gameDesc": "Convert a context-free grammar to Chomsky Normal Form step by step: remove Λ-productions, eliminate unit productions, and rewrite remaining rules."
+  },
+  "af": {
+    "gameTitle": "🔧 CNF-omskakelaar",
+    "gameDesc": "Skakel 'n konteksvrye grammatika stap vir stap om na Chomsky Normaalvorm: verwyder Λ-produksies, elimineer eenheidsproduksies, en herskryf oorblywende reëls."
+  },
+  "zu": {
+    "gameTitle": "🔧 Umguquli we-CNF",
+    "gameDesc": "Guqula igramathiki engena-konteksi ibe yi-Chomsky Normal Form isinyathelo ngesinyathelo: susa ama-Λ-production, qeda ama-unit production, bese ubhala kabusha imithetho esele."
+  }
+}

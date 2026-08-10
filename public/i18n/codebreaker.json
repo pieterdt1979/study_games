@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🔐 Code Breaker (Mastermind)",
+    "gameDesc": "Crack the secret code using logic and the multiplication principle. Each guess gives you feedback: correct digits in correct positions and correct digits in wrong positions."
+  },
+  "af": {
+    "gameTitle": "🔐 Kodekraker (Mastermind)",
+    "gameDesc": "Kraak die geheime kode met logika en die vermenigvuldigingsbeginsel. Elke raai gee jou terugvoer: korrekte syfers in korrekte posisies en korrekte syfers in verkeerde posisies."
+  },
+  "zu": {
+    "gameTitle": "🔐 Umphuli Wekhodi (Mastermind)",
+    "gameDesc": "Phula ikhodi eyimfihlo usebenzisa ilogikhi nomthetho wokuphindaphinda. Ukuqagela ngakunye kukunika impendulo: izinombolo ezilungile ezikhundleni ezilungile nezinombolo ezilungile ezikhundleni ezingalungile."
+  }
+}

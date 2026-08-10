@@ -38,10 +38,10 @@
 </head>
 <body>
   <div class="container">
-    <div class="game-header"><a href="/">&#8592;</a><h2>🔤 Regular Expression Builder</h2></div>
+    <div class="game-header"><a href="/">&#8592;</a><h2 data-i18n="gameTitle">🔤 Regular Expression Builder</h2></div>
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>Given a language description, write the <strong>regular expression</strong> that generates exactly that language.
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">Given a language description, write the <strong>regular expression</strong> that generates exactly that language.
       Use: <code>a</code>, <code>b</code> (letters), <code>+</code> (union), <code>*</code> (Kleene star), concatenation, and <code>Λ</code> (empty word). Alphabet is {a, b}.</p>
     </div>
     <div class="game-layout">
@@ -178,6 +178,20 @@
     function showMessage(t,type) { document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`; }
     document.getElementById('regexInput').addEventListener('keydown', e => { if(e.key==='Enter') checkRegex(); });
     loadProblem();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/regex-builder.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

@@ -178,12 +178,12 @@
   <div class="container">
     <div class="game-header">
       <a href="/">&#8592;</a>
-      <h2>🔐 Combinatorics Code Breaker</h2>
+      <h2 data-i18n="gameTitle">🔐 Combinatorics Code Breaker</h2>
     </div>
 
     <div class="game-info">
-      <h4>How to Play</h4>
-      <p>A secret code of coloured pegs has been generated. Select a colour from the picker, then click peg positions to place your guess. After each guess, you'll receive feedback: <strong>⚪ White</strong> = correct colour, wrong position. <strong>⬛ Black (white dot)</strong> = correct colour AND position. Use logic to crack the code!</p>
+      <h4 data-i18n="howToPlay">How to Play</h4>
+      <p data-i18n="gameDesc">A secret code of coloured pegs has been generated. Select a colour from the picker, then click peg positions to place your guess. After each guess, you'll receive feedback: <strong>⚪ White</strong> = correct colour, wrong position. <strong>⬛ Black (white dot)</strong> = correct colour AND position. Use logic to crack the code!</p>
     </div>
 
     <div class="difficulty-select">
@@ -475,6 +475,20 @@
     // Init
     updateMathNote();
     newGame();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/codebreaker.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

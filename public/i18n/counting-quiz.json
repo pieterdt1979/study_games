@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🧮 Counting Challenges",
+    "gameDesc": "Solve counting problems using permutations, combinations, the multiplication principle, and arrangements with repetition. Select or type your answer and check if you're right!"
+  },
+  "af": {
+    "gameTitle": "🧮 Teluitdagings",
+    "gameDesc": "Los telprobleme op met permutasies, kombinasies, die vermenigvuldigingsbeginsel, en rangskikkings met herhaling. Kies of tik jou antwoord in en kyk of jy reg is!"
+  },
+  "zu": {
+    "gameTitle": "🧮 Izinselele Zokubala",
+    "gameDesc": "Xazulula izinkinga zokubala usebenzisa amaphermutheshini, amakombineshini, umthetho wokuphindaphinda, nokuhlela ngokuphindaphinda. Khetha noma uthayiphe impendulo yakho bese uhlola ukuthi ulungile!"
+  }
+}

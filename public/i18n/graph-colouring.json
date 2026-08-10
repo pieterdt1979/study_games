@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🎨 Graph Colouring Challenge",
+    "gameDesc": "Select a colour from the palette, then click a vertex to colour it. Your goal: colour every vertex so that <strong>no two adjacent vertices share the same colour</strong>, using as few colours as possible. The minimum number needed is called the <strong>chromatic number χ(G)</strong>."
+  },
+  "af": {
+    "gameTitle": "🎨 Grafiekkleur-uitdaging",
+    "gameDesc": "Kies 'n kleur uit die palet en klik dan op 'n hoekpunt om dit te kleur. Jou doel: kleur elke hoekpunt sodat <strong>geen twee aangrensende hoekpunte dieselfde kleur deel nie</strong>, met so min kleure as moontlik. Die minimum getal wat nodig is, word die <strong>chromatiese getal χ(G)</strong> genoem."
+  },
+  "zu": {
+    "gameTitle": "🎨 Inselele Yokucwebisa Igrafu",
+    "gameDesc": "Khetha umbala ephayilethi, bese uchofoza iverteksi ukuze uyicwebise. Umgomo wakho: cwecwesa wonke amaverteksi ukuze <strong>kungabi khona ababili abasondelene abanombala ofanayo</strong>, usebenzisa imibala emincane kakhulu. Inombolo encane edingekayo ibizwa <strong>inombolo yekhromatiki χ(G)</strong>."
+  }
+}

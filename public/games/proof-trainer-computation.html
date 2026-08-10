@@ -36,7 +36,7 @@
 </head>
 <body>
   <div class="container">
-    <div class="game-header"><a href="/">&#8592;</a><h2>🎓 Theory of Computation Exam Trainer</h2></div>
+    <div class="game-header"><a href="/">&#8592;</a><h2 data-i18n="gameTitle">🎓 Theory of Computation Exam Trainer</h2></div>
     <div class="game-info">
       <h4>Exam preparation</h4>
       <p>Questions covering context-free grammars, PDAs, pumping lemmas, Turing machines, decidability, and the Chomsky hierarchy — matching the style of Theory of Computation exams.</p>
@@ -46,6 +46,7 @@
       <button class="btn btn-secondary" onclick="setMode('cfg')">Grammars &amp; CNF</button>
       <button class="btn btn-secondary" onclick="setMode('pda')">PDAs &amp; Languages</button>
       <button class="btn btn-secondary" onclick="setMode('tm')">TMs &amp; Decidability</button>
+      <button class="btn btn-secondary" onclick="setMode('proc')">Procedural (Exam-style)</button>
     </div>
     <div class="game-layout">
       <div>
@@ -139,6 +140,133 @@
       {cat:'TM', q:'The INSERT subroutine on a TM:',
         opts:['Adds a character by shifting all characters to the right','Overwrites the current cell','Moves the tape head left','Pops from the stack'], ans:0,
         exp:'INSERT shifts everything to the right of the current position one cell to the right, then writes the new character. The tape head ends up on the inserted character.'},
+
+      // === PROCEDURAL / EXAM-STYLE ===
+
+      // -- Theorem 21 (DFA → CFG) --
+      {cat:'PROC', q:'Theorem 21 converts a DFA to a CFG. What does each STATE in the DFA become in the grammar?',
+        opts:['A terminal symbol','A nonterminal (variable)','A production rule','Nothing — states are discarded'], ans:1,
+        exp:'Theorem 21: Each DFA state becomes a nonterminal in the CFG. If state X reads letter "a" and goes to state Y, the production is X→aY. Accept states also get X→Λ (or a final terminal production for the last letter).'},
+      {cat:'PROC', q:'In Theorem 21, if DFA state q₁ transitions to q₂ on input "a", the CFG production is:',
+        opts:['q₁ → q₂a','q₁ → aq₂','q₂ → aq₁','S → q₁aq₂'], ans:1,
+        exp:'The rule is: if δ(q₁,a)=q₂, then add production q₁→aq₂. The terminal goes first, then the nonterminal for the destination state. This builds a regular (right-linear) grammar.'},
+      {cat:'PROC', q:'In Theorem 21, for a DFA with start state q₀ and accept state q₃, what is the start symbol of the grammar?',
+        opts:['S (always a fresh symbol)','q₃ (the accept state)','q₀ (the start state)','Any nonterminal'], ans:2,
+        exp:'The start state of the DFA becomes the start symbol of the grammar. Productions from q₀ generate the first letter of any word, just as the DFA starts reading from q₀.'},
+      {cat:'PROC', q:'In Theorem 21, how do we handle accept states in the CFG?',
+        opts:['Add production q_accept → Λ for each accept state','Add production S → q_accept','Remove them from the grammar','Make them terminal symbols'], ans:0,
+        exp:'Each accept state gets an additional Λ-production (e.g., q₃→Λ). This allows the derivation to terminate when we reach an accept state, meaning the word is complete and accepted.'},
+
+      // -- Theorem 42 (Does a CFG generate any words?) --
+      {cat:'PROC', q:'Theorem 42 (reformulated): To determine if a CFG generates any words, you iteratively mark nonterminals as "productive". A nonterminal is marked productive if:',
+        opts:['It appears on the left side of any production','All symbols on the RHS of one of its productions are already marked (or are terminals)','It can reach the start symbol','It has at least 2 productions'], ans:1,
+        exp:'The marking algorithm: Mark a nonterminal if it has at least one production where every symbol on the RHS is either a terminal or an already-marked nonterminal. Repeat until no new marks. S is marked → grammar generates words.'},
+      {cat:'PROC', q:'Given: S→AC, A→CC, B→CD|b, C→DB, D→a. Using Theorem 42, which nonterminal gets marked FIRST?',
+        opts:['S','A','B','D'], ans:3,
+        exp:'D→a has only a terminal on the RHS. So D is marked first (round 1). Then B→CD|b — "b" is terminal so B is also marked in round 1. Then C→DB (D and B both marked) → C marked in round 2. Then A→CC → marked round 3. S→AC → marked round 4. The grammar generates words.'},
+      {cat:'PROC', q:'If after running the Theorem 42 marking algorithm, the START symbol S is NOT marked, then:',
+        opts:['The grammar is ambiguous','The grammar generates no words at all','The grammar generates only Λ','The grammar is not in CNF'], ans:1,
+        exp:'If S is never marked, no production chain from S can ever produce all terminals — the grammar generates the empty language (no words at all, not even Λ). This is a decidable property of CFGs.'},
+      {cat:'PROC', q:'In the Theorem 42 marking algorithm, if a production has the form B→b (single terminal), then B is marked in:',
+        opts:['Round 0 (before the algorithm starts)','Round 1 (the first pass)','Only after all other nonterminals are checked','Never — terminals can\'t help'], ans:1,
+        exp:'A production with only terminals on the RHS immediately qualifies the LHS nonterminal for marking. B→b means B can produce a word ("b"), so it\'s marked in the very first round.'},
+
+      // -- CNF Conversion Procedure --
+      {cat:'PROC', q:'Given S→aXb, X→Λ. In Step 1 (eliminate Λ-productions), X is nullable. After adding new productions, S becomes:',
+        opts:['S→aXb | ab','S→aXb | aX | b','S→ab only','S→aXb | Xb | aX'], ans:0,
+        exp:'X appears once in S→aXb. Removing the nullable X gives S→ab. We keep the original S→aXb too. Result: S→aXb|ab. Then remove X→Λ.'},
+      {cat:'PROC', q:'Given A→B, B→aB|b (a unit production A→B exists). After eliminating unit productions, A\'s productions become:',
+        opts:['A→aB|b','A→B|aB|b','A→a|b','A→aA|b'], ans:0,
+        exp:'Unit production A→B is removed. Replace it with B\'s non-unit productions: A→aB|b. The original B→aB|b stays unchanged. We copy B\'s "real" productions to A.'},
+      {cat:'PROC', q:'In Step 3 of CNF conversion, the production S→aAb must be rewritten. The FIRST thing to do is:',
+        opts:['Split into S→XY, X→aA, Y→b','Replace terminals with new nonterminals: S→PₐAPᵦ (where Pₐ→a, Pᵦ→b)','Remove the production','Convert to S→Aa|b'], ans:1,
+        exp:'Step 3 first: replace each terminal in a mixed production with a new nonterminal (Pₐ→a, Pᵦ→b), giving S→PₐAPᵦ. THEN split the 3-symbol RHS: S→PₐR₁, R₁→APᵦ. Both sub-steps are needed for CNF.'},
+      {cat:'PROC', q:'After CNF conversion, the production S→PₐAPᵦ (where Pₐ→a, Pᵦ→b) has 3 symbols on RHS. How do we fix this?',
+        opts:['Introduce a new nonterminal R and split: S→PₐR, R→APᵦ','Remove the middle symbol','Replace with S→PₐPᵦ','It\'s already valid CNF'], ans:0,
+        exp:'CNF allows only 2 nonterminals on RHS. Split from the left: S→PₐR₁ and R₁→APᵦ. Each production now has exactly 2 nonterminals. For longer RHS (4+ symbols), keep splitting recursively.'},
+
+      // -- TM Tracing (accept/reject/loop) --
+      {cat:'PROC', q:'When asked "what is accept(T)?" for a Turing Machine T, you must provide:',
+        opts:['A single word accepted by T','The set of ALL words that T accepts','The number of states that lead to Halt','The set of transitions'], ans:1,
+        exp:'accept(T) = the complete language (set of words) accepted by T. You describe it as a set, e.g., {aⁿbⁿ | n≥1} or "all words starting with b". Trace several words to find the pattern.'},
+      {cat:'PROC', q:'If a TM enters an infinite loop reading "aab", then "aab" belongs to:',
+        opts:['accept(T)','reject(T)','loop(T)','Both accept(T) and loop(T)'], ans:2,
+        exp:'loop(T) = set of words on which T never halts (loops forever). A word belongs to exactly one of: accept(T), reject(T), or loop(T). These three partition all possible inputs.'},
+      {cat:'PROC', q:'A TM "rejects" a word when:',
+        opts:['It loops forever','It reaches a state with no valid transition (crashes)','It reads a blank','It pops an empty stack'], ans:1,
+        exp:'Rejection = the TM halts without reaching the HALT state (crashes). It enters a state where no transition matches the current tape symbol. This is different from looping (never halting).'},
+      {cat:'PROC', q:'To find "the shortest word accepted by T", the best strategy is:',
+        opts:['Look for the shortest path from Start to Halt in the transition diagram','Try all words of length 0, then 1, then 2, etc.','Count the states','Check only words of length = number of states'], ans:0,
+        exp:'Trace the transition diagram looking for the shortest sequence of inputs that leads from Start to Halt. Often the shortest word is 1-3 characters. Trace Λ (empty), then single chars, etc.'},
+
+      // -- Summary Table & CWL --
+      {cat:'PROC', q:'A TM summary table has one row per state and one column per:',
+        opts:['Production rule','Tape symbol (including Δ)','Input word','Other state'], ans:1,
+        exp:'Summary table: rows = states (except Halt), columns = tape symbols (each letter in alphabet plus Δ). Each cell contains (newSymbol, direction, nextState) for that transition.'},
+      {cat:'PROC', q:'To convert a TM to CWL (Code Word Language), each transition (state i, read a, write b, move R, goto state j) is encoded as:',
+        opts:['A string of 1s separated by 0s: 1ⁱ0...','A binary number','A production rule','A hexadecimal code'], ans:0,
+        exp:'CWL encodes transitions using unary (1s) separated by 0s. Format: 1ⁱ 0 1ᵃ 0 1ᵇ 0 1ᵈ 0 1ʲ where i=state#, a=input symbol#, b=output symbol#, d=direction (1=L,2=R), j=next state#. Multiple transitions separated by 00. The full code word is bounded by 000...000.'},
+      {cat:'PROC', q:'In CWL encoding, the symbols are numbered. Typically for alphabet {a,b}: a=1, b=2, Δ=3. If state 2 reads "b" (=2), writes "a" (=1), moves R (=2), goes to state 3, the transition code is:',
+        opts:['11011011011011','110110110110111','1100110011011011','110011011011011'], ans:0,
+        exp:'State 2 = 11, read b = 11 (symbol 2), write a = 1 (symbol 1), move R = 11 (direction 2), next state 3 = 111. Separated by single 0s: 11 0 11 0 1 0 11 0 111 = 11011011011011.'},
+
+      // -- ALAN Membership --
+      {cat:'PROC', q:'ALAN (the diagonal language) is the set of all TMs whose code word is:',
+        opts:['Accepted by themselves','NOT accepted by themselves','Accepted by any TM','A palindrome'], ans:1,
+        exp:'ALAN = {T | T does NOT accept its own code word}. A TM T belongs to ALAN if, when you feed T its own description as input, it either rejects or loops. ALAN is proven not recursively enumerable.'},
+      {cat:'PROC', q:'To determine if a TM T belongs to ALAN, you ask:',
+        opts:['Does T halt on all inputs?','Does T accept its own code word?','Does T accept the empty word?','Is T\'s code word a valid program?'], ans:1,
+        exp:'ALAN membership: "Does T accept its own code word?" If YES → T ∉ ALAN. If NO (rejects or loops) → T ∈ ALAN. This is the diagonalization argument used to prove ALAN is not r.e.'},
+      {cat:'PROC', q:'If a TM T accepts the language {a,aa,aaa,...} and T\'s code word is "11011011011" (not a string of just a\'s), does T ∈ ALAN?',
+        opts:['Yes, T ∈ ALAN','No, T ∉ ALAN','Cannot be determined','T is not a valid TM'], ans:0,
+        exp:'T accepts only words made of a\'s. T\'s code word "11011011011" is NOT a word of just a\'s, so T does NOT accept its own code word. Therefore T ∈ ALAN (it fails to accept itself).'},
+
+      // -- Language Classification (Exam Q4 style) --
+      {cat:'PROC', q:'S→aAbB, A→aAb|Λ, B→ba|Λ. Is L(G) regular or nonregular-CF?',
+        opts:['Regular and context-free','Nonregular and context-free','Not context-free','Cannot be determined'], ans:1,
+        exp:'A→aAb|Λ generates {aⁿbⁿ | n≥0} which requires matching counts — NOT regular. The whole grammar is a CFG, so L is context-free. Answer: nonregular and CF.'},
+      {cat:'PROC', q:'S→BSBA|Λ, A→a, B→b. Is L(G) regular or nonregular-CF?',
+        opts:['Regular and context-free','Nonregular and context-free','Not context-free','Cannot be determined'], ans:1,
+        exp:'Expanding: S→bSba|Λ. This generates {bⁿ(ba)ⁿ | n≥0} = {(bba)ⁿ with nesting}. The recursive S→bSba creates matched b...ba pairs requiring a stack to verify. Nonregular, but CF.'},
+      {cat:'PROC', q:'S→aABbB, A→aA|Λ, B→bB|Λ. Is L(G) regular or nonregular-CF?',
+        opts:['Regular and context-free','Nonregular and context-free','Not context-free','Cannot be determined'], ans:0,
+        exp:'A→aA|Λ generates a*. B→bB|Λ generates b*. So S→a(a*)(b*)(b)(b*) = aa*b*bb* = a⁺b⁺. This is regular! No matching/counting needed. A DFA with 3 states accepts this.'},
+      {cat:'PROC', q:'If L₁ is nonregular-CF and L₂ is regular, then L₁∪L₂ is:',
+        opts:['Always regular','Always nonregular and CF','Always non-CF','Could be regular or nonregular-CF, but is at least CF'], ans:1,
+        exp:'Union of a CFL and a regular language is always CF (CFLs are closed under union). It cannot become regular just by adding a regular language to a non-regular CFL (the non-regular part persists). So: nonregular and CF.'},
+      {cat:'PROC', q:'To show a grammar generates a REGULAR language (exam Q4 "explain" part), the key argument is:',
+        opts:['Show the grammar is in CNF','Show no production creates matched nesting — it can be converted to a DFA','Show the language is finite','Show it has Λ-productions'], ans:1,
+        exp:'A CFG generates a regular language if its structure doesn\'t create unbounded nesting/matching. Look for recursive productions: A→aA or A→Ab are fine (regular recursion). But A→aAb forces matched pairs (non-regular). If you can build a DFA/regex, it\'s regular.'},
+
+      // -- Pumping Lemma Procedure (Exam Q3 style) --
+      {cat:'PROC', q:'In a pumping lemma proof for CFL, after choosing word w = aⁿ⁺¹b²ⁿaⁿ⁻¹, how many CASES must you consider?',
+        opts:['1 (just pump once)','3 (v and y both in one clump, or spanning boundary)','5 or more (all positions where vxy could lie)','2 (v in first half, y in second half)'], ans:2,
+        exp:'You must consider ALL possible placements of vxy (constrained by |vxy|≤2ᵖ). For three-clump words like aⁿ⁺¹b²ⁿaⁿ⁻¹: vxy in first a-clump, spanning a-b boundary, in b-clump, spanning b-a boundary, in last a-clump. That\'s at least 5 cases. Each must give a contradiction.'},
+      {cat:'PROC', q:'In the pumping lemma for CFLs, why must |vxy| ≤ 2ᵖ be exploited in the proof?',
+        opts:['To limit how long the word can be','To ensure vxy cannot span all three clumps simultaneously','To make the math simpler','Because 2ᵖ equals the number of states'], ans:1,
+        exp:'The length constraint |vxy|≤2ᵖ is crucial: for a long enough word (3+ clumps each >2ᵖ), vxy is "short" enough that it can only touch at most 2 adjacent clumps. This means pumping disrupts balance between the touched clumps and the untouched one.'},
+      {cat:'PROC', q:'For L={aⁿbⁿcⁿ}, after pumping (uv²xy²z), the standard contradiction argument is:',
+        opts:['The word becomes too long','vxy spans at most 2 of the 3 clumps, so pumping makes those ≠ the third','The word is no longer over {a,b,c}','v and y must both be empty'], ans:1,
+        exp:'Since |vxy|≤2ᵖ, vxy lies within at most 2 adjacent clumps. Pumping v and y increases the count of letters in those 2 clumps, while the third stays the same. So counts become unequal → not in L.'},
+
+      // -- DPDA Construction Strategy --
+      {cat:'PROC', q:'To build a DPDA for L={aⁿbⁿ⁺¹bb | n≥0}, the correct stack strategy is:',
+        opts:['Push for each a, pop for each b, accept when stack empty','Push for each a, pop for each b, then require exactly 3 more b\'s with stack empty','Push for each a, pop for each b, then read "bb" after stack empties, then accept','Pop for each a, push for each b'], ans:2,
+        exp:'L = aⁿ followed by n+1 b\'s followed by bb = aⁿb^(n+3). Strategy: push each a, pop one per b until empty (that consumed n b\'s), then read 3 more b\'s with empty stack, accept. The "bbb" suffix is the +1 and the bb combined.'},
+      {cat:'PROC', q:'In a DPDA that accepts {bⁿab(aa)ⁿ | n≥0}, what should be pushed on the stack?',
+        opts:['One symbol per "b" read at the start','Two symbols per "b" read at the start','One symbol per "a" at the end','Nothing — this language is regular'], ans:1,
+        exp:'The language matches n b\'s at the start with n pairs of a\'s at the end (= 2n a\'s). Push 2 symbols per initial b (total 2n). After reading "ab", pop one per "a" read. 2n pops = 2n a\'s. Stack empty → accept.'},
+      {cat:'PROC', q:'The start state and accept state of a DPDA in exam answers should be:',
+        opts:['Always the same state','Clearly labelled as "Start" and "Accept" (or with → and *)','Unnamed — the examiner knows','Only the accept state needs marking'], ans:1,
+        exp:'COS3701 exams explicitly require: "The start and accept state must be defined." Use standard notation: arrow pointing to start state, double-circle (or *) for accept state.'},
+
+      // -- Regex Construction Strategy --
+      {cat:'PROC', q:'The exam asks: "regex for all words over {a,b} starting with a and having even number of b\'s." The key subproblem is:',
+        opts:['Counting total letters','Ensuring b\'s come in pairs — model "even b\'s" as (a*ba*ba*)*','Just writing a(a+b)*','Alternating a\'s and b\'s'], ans:1,
+        exp:'Even number of b\'s = b\'s appear in pairs. Between/around pairs, any a\'s allowed. Pattern: starts with a, then ensures b\'s come in pairs: a · a*(ba*ba*)* covers "start with a" + "zero or more pairs of b\'s with a\'s between them."'},
+      {cat:'PROC', q:'For the language "all words ending with a letter different from the first letter," the regex must:',
+        opts:['Handle two cases: starts-with-a-ends-with-b OR starts-with-b-ends-with-a','Use a single pattern with backreferences','Only consider alternating words','Handle words of length 1 specially'], ans:0,
+        exp:'Two cases: a(a+b)*b + b(a+b)*a. Case 1: starts with a, any middle, ends with b. Case 2: starts with b, any middle, ends with a. Union of both covers the language. This is typical COS3701 exam regex style.'},
     ];
 
     let questions = [];
@@ -154,6 +282,7 @@
       if (mode==='mixed') questions=shuffle([...allQuestions]);
       else if (mode==='cfg') questions=shuffle(allQuestions.filter(q=>q.cat==='CFG'));
       else if (mode==='pda') questions=shuffle(allQuestions.filter(q=>q.cat==='PDA'));
+      else if (mode==='proc') questions=shuffle(allQuestions.filter(q=>q.cat==='PROC'));
       else questions=shuffle(allQuestions.filter(q=>q.cat==='TM'));
       qIdx=0; score=0; total=0; streak=0; loadQ();
     }
@@ -197,6 +326,20 @@
     }
     function showMessage(t,type){document.getElementById('message').innerHTML=`<div class="message message-${type}">${t}</div>`;}
     resetQuiz();
+  </script>
+
+  <script src="/js/i18n.js"></script>
+  <script>
+    Promise.all([
+      fetch('/i18n/common.json').then(r => r.json()),
+      fetch('/i18n/proof-trainer-computation.json').then(r => r.json())
+    ]).then(([common, page]) => {
+      const merged = {};
+      ['en','af','zu'].forEach(lang => {
+        merged[lang] = { ...common[lang], ...page[lang] };
+      });
+      i18n.load(merged);
+    });
   </script>
 </body>
 </html>

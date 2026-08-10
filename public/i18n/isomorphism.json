@@ -1,0 +1,14 @@
+{
+  "en": {
+    "gameTitle": "🔀 Graph Isomorphism Matcher",
+    "gameDesc": "Determine if two graphs are isomorphic by finding the vertex mapping. Drag vertices in graph B to match the structure of graph A."
+  },
+  "af": {
+    "gameTitle": "🔀 Grafiek-isomorfisme Passer",
+    "gameDesc": "Bepaal of twee grafieke isomorf is deur die hoekpunt-afbeelding te vind. Sleep hoekpunte in grafiek B om die struktuur van grafiek A te pas."
+  },
+  "zu": {
+    "gameTitle": "🔀 Umfanisi We-Isomorphism Yamagrafu",
+    "gameDesc": "Nquma ukuthi amagrafu amabili ayafana ngokuthola ukuhlangana kwamaverteksi. Hudula amaverteksi kugrafu B ukuze uhambisane nesakhiwo sikagrafu A."
+  }
+}

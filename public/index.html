@@ -19,195 +19,203 @@
 </head>
 <body>
   <div class="container">
-    <h1>Study Games</h1>
-    <p class="subtitle">Learn through interactive games</p>
+    <h1 data-i18n="siteTitle">Study Games</h1>
+    <p class="subtitle" data-i18n="siteSubtitle">Learn through interactive games</p>
 
     <div class="search-bar">
       <span class="icon">🔍</span>
-      <input type="text" id="searchInput" placeholder="Search... (e.g. euler, tree, regex, pumping, pigeonhole, deduction)">
+      <input type="text" id="searchInput" data-i18n="searchPlaceholder" placeholder="Search... (e.g. euler, tree, regex, pumping, pigeonhole, deduction)">
     </div>
-    <div class="no-results" id="noResults">No games match your search.</div>
+    <div class="no-results" id="noResults" data-i18n="noResults">No games match your search.</div>
 
-    <h3 class="section-title" data-section>Graph Theory</h3>
+    <h3 class="section-title" data-section data-i18n="sectionExam">Exam Trainers</h3>
+    <div class="game-grid">
+      <a href="/games/proof-trainer-discrete.html" class="game-card" data-tags="exam MCQ multiple choice discrete math graph counting proof theorem technique chi planar euler tree">
+        <div class="icon">🎓</div>
+        <h3 data-i18n="proofDiscreteTitle">Discrete Math Exam Trainer</h3>
+        <p data-i18n="proofDiscreteDesc">MCQ exam prep: theorem identification, proof techniques, computation, true/false.</p>
+        <span class="study-unit" data-i18n="proofDiscreteUnit">Exam-style multiple choice</span>
+      </a>
+      <a href="/games/proof-trainer-computation.html" class="game-card" data-tags="exam MCQ theory computation CFG CNF PDA TM turing halting decidable pumping chomsky hierarchy closure CWL ALAN theorem 21 42 procedural">
+        <div class="icon">🎓</div>
+        <h3 data-i18n="proofComputationTitle">Theory of Computation Exam Trainer</h3>
+        <p data-i18n="proofComputationDesc">55 questions: CFGs, PDAs, TMs, pumping lemma, CWL, ALAN, Theorem 21/42 — procedural exam-style.</p>
+        <span class="study-unit" data-i18n="proofComputationUnit">COS3701 exam prep</span>
+      </a>
+    </div>
+
+    <h3 class="section-title" data-section data-i18n="sectionGraphs">Graph Theory</h3>
     <div class="game-grid">
       <a href="/games/graph-colouring.html" class="game-card" data-tags="graph colouring chromatic number bipartite brooks colour color vertices independent set">
         <div class="icon">🎨</div>
-        <h3>Graph Colouring Challenge</h3>
-        <p>Colour vertices using the fewest colours so no adjacent pair shares a colour.</p>
-        <span class="study-unit">Chromatic number, Brooks' theorem</span>
+        <h3 data-i18n="graphColouringTitle">Graph Colouring Challenge</h3>
+        <p data-i18n="graphColouringDesc">Colour vertices using the fewest colours so no adjacent pair shares a colour.</p>
+        <span class="study-unit" data-i18n="graphColouringUnit">Chromatic number, Brooks' theorem</span>
       </a>
       <a href="/games/euler-hamilton.html" class="game-card" data-tags="euler hamilton cycle trail path degree odd even circuit dirac grinberg multigraph">
         <div class="icon">🛤️</div>
-        <h3>Euler &amp; Hamilton Pathfinder</h3>
-        <p>Find Euler trails/cycles (every edge once) and Hamilton circuits (every vertex once).</p>
-        <span class="study-unit">Euler's theorem, Dirac's theorem</span>
+        <h3 data-i18n="eulerHamiltonTitle">Euler &amp; Hamilton Pathfinder</h3>
+        <p data-i18n="eulerHamiltonDesc">Find Euler trails/cycles (every edge once) and Hamilton circuits (every vertex once).</p>
+        <span class="study-unit" data-i18n="eulerHamiltonUnit">Euler's theorem, Dirac's theorem</span>
       </a>
       <a href="/games/spanning-tree.html" class="game-card" data-tags="spanning tree kruskal prim greedy network weighted minimum MST">
         <div class="icon">🌳</div>
-        <h3>Spanning Tree Builder</h3>
-        <p>Build a minimum spanning tree using Kruskal's or Prim's greedy strategy.</p>
-        <span class="study-unit">Kruskal's &amp; Prim's algorithms</span>
+        <h3 data-i18n="spanningTreeTitle">Spanning Tree Builder</h3>
+        <p data-i18n="spanningTreeDesc">Build a minimum spanning tree using Kruskal's or Prim's greedy strategy.</p>
+        <span class="study-unit" data-i18n="spanningTreeUnit">Kruskal's &amp; Prim's algorithms</span>
       </a>
       <a href="/games/isomorphism.html" class="game-card" data-tags="isomorphism isomorphic degree sequence adjacency vertex correspondence graph">
         <div class="icon">🔀</div>
-        <h3>Graph Isomorphism Matcher</h3>
-        <p>Determine if two graphs are isomorphic by finding the vertex mapping.</p>
-        <span class="study-unit">Degree sequences, adjacency</span>
+        <h3 data-i18n="isomorphismTitle">Graph Isomorphism Matcher</h3>
+        <p data-i18n="isomorphismDesc">Determine if two graphs are isomorphic by finding the vertex mapping.</p>
+        <span class="study-unit" data-i18n="isomorphismUnit">Degree sequences, adjacency</span>
       </a>
       <a href="/games/planarity.html" class="game-card" data-tags="planar planarity euler formula K5 K33 kuratowski regions faces crossing">
         <div class="icon">✏️</div>
-        <h3>Planarity Puzzle</h3>
-        <p>Drag vertices to untangle a graph — or prove it's non-planar!</p>
-        <span class="study-unit">Euler's formula, Kuratowski</span>
+        <h3 data-i18n="planarityTitle">Planarity Puzzle</h3>
+        <p data-i18n="planarityDesc">Drag vertices to untangle a graph — or prove it's non-planar!</p>
+        <span class="study-unit" data-i18n="planarityUnit">Euler's formula, Kuratowski</span>
       </a>
       <a href="/games/circle-chord.html" class="game-card" data-tags="circle chord method planar non-planar hamilton K5 K33 kuratowski crossing forced">
         <div class="icon">⭕</div>
-        <h3>Circle-Chord Trainer</h3>
-        <p>Place chords inside/outside a circuit to prove non-planarity step by step.</p>
-        <span class="study-unit">Circle-chord method</span>
+        <h3 data-i18n="circleChordTitle">Circle-Chord Trainer</h3>
+        <p data-i18n="circleChordDesc">Place chords inside/outside a circuit to prove non-planarity step by step.</p>
+        <span class="study-unit" data-i18n="circleChordUnit">Circle-chord method</span>
       </a>
       <a href="/games/trees.html" class="game-card" data-tags="tree BFS DFS spanning traversal preorder postorder inorder rooted binary m-ary cayley height leaves">
         <div class="icon">🌲</div>
-        <h3>Tree Construction Lab</h3>
-        <p>Build BFS/DFS spanning trees, perform traversals, answer m-ary tree questions.</p>
-        <span class="study-unit">Rooted trees, Cayley's theorem</span>
+        <h3 data-i18n="treesTitle">Tree Construction Lab</h3>
+        <p data-i18n="treesDesc">Build BFS/DFS spanning trees, perform traversals, answer m-ary tree questions.</p>
+        <span class="study-unit" data-i18n="treesUnit">Rooted trees, Cayley's theorem</span>
       </a>
     </div>
 
-    <h3 class="section-title" data-section>Counting &amp; Combinatorics</h3>
+    <h3 class="section-title" data-section data-i18n="sectionCounting">Counting &amp; Combinatorics</h3>
     <div class="game-grid">
       <a href="/games/codebreaker.html" class="game-card" data-tags="mastermind code permutation combination multiplication principle counting arrangement">
         <div class="icon">🔐</div>
-        <h3>Code Breaker (Mastermind)</h3>
-        <p>Crack the secret code using logic and the multiplication principle.</p>
-        <span class="study-unit">Multiplication principle</span>
+        <h3 data-i18n="codebreakerTitle">Code Breaker (Mastermind)</h3>
+        <p data-i18n="codebreakerDesc">Crack the secret code using logic and the multiplication principle.</p>
+        <span class="study-unit" data-i18n="codebreakerUnit">Multiplication principle</span>
       </a>
       <a href="/games/counting-quiz.html" class="game-card" data-tags="counting permutation combination binomial selection repetition arrangement distribution binary string">
         <div class="icon">🧮</div>
-        <h3>Counting Challenges</h3>
-        <p>Permutations, combinations, arrangements with repetition, distributions.</p>
-        <span class="study-unit">P(n,r), C(n,r), distributions</span>
+        <h3 data-i18n="countingQuizTitle">Counting Challenges</h3>
+        <p data-i18n="countingQuizDesc">Permutations, combinations, arrangements with repetition, distributions.</p>
+        <span class="study-unit" data-i18n="countingQuizUnit">P(n,r), C(n,r), distributions</span>
       </a>
       <a href="/games/perms-combs-quiz.html" class="game-card" data-tags="permutation combination P(n,r) C(n,r) bit string vowel consonant counting factorial choose">
         <div class="icon">🎯</div>
-        <h3>Permutations &amp; Combinations</h3>
-        <p>Bit strings, vowel/consonant arrangements, and selection problems.</p>
-        <span class="study-unit">Applied counting</span>
+        <h3 data-i18n="permsCombsTitle">Permutations &amp; Combinations</h3>
+        <p data-i18n="permsCombsDesc">Bit strings, vowel/consonant arrangements, and selection problems.</p>
+        <span class="study-unit" data-i18n="permsCombsUnit">Applied counting</span>
       </a>
       <a href="/games/binomial-identities.html" class="game-card" data-tags="binomial identity pascal triangle block walking committee proof theorem vandermonde">
         <div class="icon">🧱</div>
-        <h3>Binomial Identity Prover</h3>
-        <p>Prove identities with block walking, Pascal's triangle, and the binomial theorem.</p>
-        <span class="study-unit">Pascal's identity, binomial theorem</span>
+        <h3 data-i18n="binomialTitle">Binomial Identity Prover</h3>
+        <p data-i18n="binomialDesc">Prove identities with block walking, Pascal's triangle, and the binomial theorem.</p>
+        <span class="study-unit" data-i18n="binomialUnit">Pascal's identity, binomial theorem</span>
       </a>
       <a href="/games/generating-functions.html" class="game-card" data-tags="generating function OGF power series coefficient partition selection integer solutions">
         <div class="icon">📐</div>
-        <h3>Generating Function Builder</h3>
-        <p>Build OGFs and find coefficients using power series identities.</p>
-        <span class="study-unit">Ordinary generating functions</span>
+        <h3 data-i18n="genFuncTitle">Generating Function Builder</h3>
+        <p data-i18n="genFuncDesc">Build OGFs and find coefficients using power series identities.</p>
+        <span class="study-unit" data-i18n="genFuncUnit">Ordinary generating functions</span>
       </a>
       <a href="/games/egf.html" class="game-card" data-tags="exponential generating function EGF arrangement distinct cosh sinh distribution">
         <div class="icon">🔬</div>
-        <h3>Exponential GF Lab</h3>
-        <p>Exponential generating functions: eˣ, cosh, sinh for arrangements.</p>
-        <span class="study-unit">EGF, coefficient of xʳ/r!</span>
+        <h3 data-i18n="egfTitle">Exponential GF Lab</h3>
+        <p data-i18n="egfDesc">Exponential generating functions: eˣ, cosh, sinh for arrangements.</p>
+        <span class="study-unit" data-i18n="egfUnit">EGF, coefficient of xʳ/r!</span>
       </a>
       <a href="/games/recurrence.html" class="game-card" data-tags="recurrence relation fibonacci characteristic equation sequence solve linear inhomogeneous catalan">
         <div class="icon">🔢</div>
-        <h3>Recurrence Detective</h3>
-        <p>Identify recurrence relations and solve with characteristic equations.</p>
-        <span class="study-unit">Fibonacci, characteristic roots</span>
+        <h3 data-i18n="recurrenceTitle">Recurrence Detective</h3>
+        <p data-i18n="recurrenceDesc">Identify recurrence relations and solve with characteristic equations.</p>
+        <span class="study-unit" data-i18n="recurrenceUnit">Fibonacci, characteristic roots</span>
       </a>
       <a href="/games/inclusion-exclusion.html" class="game-card" data-tags="inclusion exclusion venn derangement complement union intersection DeMorgan sets">
         <div class="icon">🔵</div>
-        <h3>Inclusion-Exclusion Venn</h3>
-        <p>Compute unions and complements. Solve derangement problems.</p>
-        <span class="study-unit">Inclusion-exclusion, derangements</span>
+        <h3 data-i18n="inclusionExclusionTitle">Inclusion-Exclusion Venn</h3>
+        <p data-i18n="inclusionExclusionDesc">Compute unions and complements. Solve derangement problems.</p>
+        <span class="study-unit" data-i18n="inclusionExclusionUnit">Inclusion-exclusion, derangements</span>
       </a>
       <a href="/games/pigeonhole.html" class="game-card" data-tags="pigeonhole principle guarantee minimum draw worst case socks cards birthday ramsey">
         <div class="icon">🐦</div>
-        <h3>Pigeonhole Principle</h3>
-        <p>Guaranteed outcomes: minimum draws, birthday problems, Ramsey theory.</p>
-        <span class="study-unit">Worst-case guarantees</span>
+        <h3 data-i18n="pigeonholeTitle">Pigeonhole Principle</h3>
+        <p data-i18n="pigeonholeDesc">Guaranteed outcomes: minimum draws, birthday problems, Ramsey theory.</p>
+        <span class="study-unit" data-i18n="pigeonholeUnit">Worst-case guarantees</span>
       </a>
       <a href="/games/permutation-cycles.html" class="game-card" data-tags="symmetric group cycle notation transposition even odd parity alternating Sn composition">
         <div class="icon">🔄</div>
-        <h3>Permutation Cycles</h3>
-        <p>Cycle notation, compositions, transpositions, and even/odd parity.</p>
-        <span class="study-unit">Symmetric groups, parity</span>
+        <h3 data-i18n="permCyclesTitle">Permutation Cycles</h3>
+        <p data-i18n="permCyclesDesc">Cycle notation, compositions, transpositions, and even/odd parity.</p>
+        <span class="study-unit" data-i18n="permCyclesUnit">Symmetric groups, parity</span>
       </a>
     </div>
 
-    <h3 class="section-title" data-section>Formal Languages &amp; Automata</h3>
+    <h3 class="section-title" data-section data-i18n="sectionFormal">Formal Languages &amp; Automata</h3>
     <div class="game-grid">
       <a href="/games/regex-builder.html" class="game-card" data-tags="regular expression regex Kleene star closure language FA finite automaton pattern">
         <div class="icon">⚙️</div>
-        <h3>Regular Expression Builder</h3>
-        <p>Write regexes to match language descriptions over {a, b}.</p>
-        <span class="study-unit">Regex, Kleene star, FA equivalence</span>
+        <h3 data-i18n="regexTitle">Regular Expression Builder</h3>
+        <p data-i18n="regexDesc">Write regexes to match language descriptions over {a, b}.</p>
+        <span class="study-unit" data-i18n="regexUnit">Regex, Kleene star, FA equivalence</span>
       </a>
       <a href="/games/cfg-derivation.html" class="game-card" data-tags="CFG context-free grammar derivation syntax tree parse ambiguous production nonterminal">
         <div class="icon">🌿</div>
-        <h3>CFG Derivation Simulator</h3>
-        <p>Step through derivations, build parse trees, detect ambiguity.</p>
-        <span class="study-unit">Context-free grammars, ambiguity</span>
+        <h3 data-i18n="cfgTitle">CFG Derivation Simulator</h3>
+        <p data-i18n="cfgDesc">Step through derivations, build parse trees, detect ambiguity.</p>
+        <span class="study-unit" data-i18n="cfgUnit">Context-free grammars, ambiguity</span>
       </a>
       <a href="/games/cnf-converter.html" class="game-card" data-tags="CNF Chomsky normal form lambda nullable unit production convert grammar">
         <div class="icon">🔧</div>
-        <h3>CNF Converter</h3>
-        <p>Convert a CFG to Chomsky Normal Form: Λ-productions, unit, rewrite.</p>
-        <span class="study-unit">Chomsky Normal Form</span>
+        <h3 data-i18n="cnfTitle">CNF Converter</h3>
+        <p data-i18n="cnfDesc">Convert a CFG to Chomsky Normal Form: Λ-productions, unit, rewrite.</p>
+        <span class="study-unit" data-i18n="cnfUnit">Chomsky Normal Form</span>
       </a>
       <a href="/games/pda-simulator.html" class="game-card" data-tags="PDA pushdown automaton stack accept reject context-free DPDA nondeterministic">
         <div class="icon">📚</div>
-        <h3>PDA Simulator</h3>
-        <p>Trace PDA execution with animated stack. Accept or reject words.</p>
-        <span class="study-unit">Pushdown automata, stack memory</span>
+        <h3 data-i18n="pdaTitle">PDA Simulator</h3>
+        <p data-i18n="pdaDesc">Trace PDA execution with animated stack. Accept or reject words.</p>
+        <span class="study-unit" data-i18n="pdaUnit">Pushdown automata, stack memory</span>
       </a>
       <a href="/games/pumping-lemma.html" class="game-card" data-tags="pumping lemma non-context-free decompose uvxyz contradiction proof CFL">
         <div class="icon">💪</div>
-        <h3>Pumping Lemma Prover</h3>
-        <p>Decompose words into uvxyz and pump to prove non-context-freeness.</p>
-        <span class="study-unit">Pumping lemma for CFLs</span>
+        <h3 data-i18n="pumpingTitle">Pumping Lemma Prover</h3>
+        <p data-i18n="pumpingDesc">Decompose words into uvxyz and pump to prove non-context-freeness.</p>
+        <span class="study-unit" data-i18n="pumpingUnit">Pumping lemma for CFLs</span>
       </a>
       <a href="/games/language-hierarchy.html" class="game-card" data-tags="chomsky hierarchy regular context-free recursive recursively enumerable decidable closure TM turing halting">
         <div class="icon">🏛️</div>
-        <h3>Language Hierarchy Quiz</h3>
-        <p>Classify languages, test closure properties, decidability questions.</p>
-        <span class="study-unit">Chomsky hierarchy, closure</span>
+        <h3 data-i18n="hierarchyTitle">Language Hierarchy Quiz</h3>
+        <p data-i18n="hierarchyDesc">Classify languages, test closure properties, decidability questions.</p>
+        <span class="study-unit" data-i18n="hierarchyUnit">Chomsky hierarchy, closure</span>
       </a>
     </div>
 
-    <h3 class="section-title" data-section>Logic &amp; Proofs</h3>
+    <h3 class="section-title" data-section data-i18n="sectionLogic">Logic &amp; Proofs</h3>
     <div class="game-grid">
       <a href="/games/natural-deduction.html" class="game-card" data-tags="natural deduction proof propositional logic modus ponens tollens disjunctive syllogism hypothetical inference rule">
         <div class="icon">📝</div>
-        <h3>Natural Deduction Proofs</h3>
-        <p>Build formal proofs step by step using inference rules (MP, MT, DS, HS).</p>
-        <span class="study-unit">Inference rules, propositional logic</span>
+        <h3 data-i18n="naturalDeductionTitle">Natural Deduction Proofs</h3>
+        <p data-i18n="naturalDeductionDesc">Build formal proofs step by step using inference rules (MP, MT, DS, HS).</p>
+        <span class="study-unit" data-i18n="naturalDeductionUnit">Inference rules, propositional logic</span>
       </a>
       <a href="/games/proof-flashcards.html" class="game-card" data-tags="proof theorem edge counting euler cycle corollary binomial kruskal tree induction flashcard exam">
         <div class="icon">📜</div>
-        <h3>Proof Flashcards</h3>
-        <p>Reconstruct mathematical proofs step by step from shuffled options.</p>
-        <span class="study-unit">Required proofs for exams</span>
-      </a>
-      <a href="/games/proof-trainer-discrete.html" class="game-card" data-tags="exam MCQ multiple choice discrete math graph counting proof theorem technique chi planar euler tree">
-        <div class="icon">🎓</div>
-        <h3>Discrete Math Exam Trainer</h3>
-        <p>MCQ exam prep: theorem identification, proof techniques, computation, true/false.</p>
-        <span class="study-unit">Exam-style multiple choice</span>
-      </a>
-      <a href="/games/proof-trainer-computation.html" class="game-card" data-tags="exam MCQ theory computation CFG CNF PDA TM turing halting decidable pumping chomsky hierarchy closure">
-        <div class="icon">🎓</div>
-        <h3>Theory of Computation Exam Trainer</h3>
-        <p>MCQ exam prep: CFGs, PDAs, pumping lemmas, TMs, decidability, Chomsky hierarchy.</p>
-        <span class="study-unit">Exam-style multiple choice</span>
+        <h3 data-i18n="proofFlashcardsTitle">Proof Flashcards</h3>
+        <p data-i18n="proofFlashcardsDesc">Reconstruct mathematical proofs step by step from shuffled options.</p>
+        <span class="study-unit" data-i18n="proofFlashcardsUnit">Required proofs for exams</span>
       </a>
     </div>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script>
+    // Load translations then init search
+    fetch('/i18n/index.json').then(r => r.json()).then(t => i18n.load(t));
+
     const searchInput = document.getElementById('searchInput');
     const cards = document.querySelectorAll('.game-card');
     const sections = document.querySelectorAll('[data-section]');
